@@ -1,0 +1,8 @@
+{% extends 'viapp/base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+{% block content %}
+    <h2>Добро пожаловать!</h2>
+	<a href = "{% url 'viapp:albums' %}">АЛЬБОМЫ</a>
+{% endblock %}

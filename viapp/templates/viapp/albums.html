@@ -1,0 +1,21 @@
+{% extends 'viapp/base.html' %}
+
+{% block title %}Список альбомов{% endblock %}
+
+{% block content %}
+	<h2>Список альбомов</h2>
+
+<ul>
+	{% for album in albums %}
+		<li> {{ album }} </li>
+	{% empty %}
+	<li>
+		<a href="{% url 'albums' album.id %}">
+			{{ album.title }} ({{ album.created_at|date:"d.m.Y" }})
+		</a>
+	</li>
+	{% endfor %}
+
+</ul>
+
+{% endblock %}

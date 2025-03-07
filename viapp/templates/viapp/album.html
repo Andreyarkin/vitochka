@@ -1,0 +1,16 @@
+{% extends 'viapp/base.html' %}
+
+{% block title %}{{ album.title }}{% endblock %}
+
+{% block content %}
+<h2>{{ album.title }}</h2>
+<p>{{ album.description }}</p>
+<p>Дата создания: {{ album.created_at }}</p>
+
+<!-- Список фотографий в альбоме -->
+<div>
+  {% for photo in album.photos.all %}
+    <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+  {% endfor %}
+</div>
+{% endblock %}

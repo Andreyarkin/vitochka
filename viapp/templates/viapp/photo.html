@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ photo.title }}{% endblock %}
+
+{% block content %}
+    <h2>{{ photo.title }}</h2>
+    <img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="500">
+    <p>{{ photo.description }}</p>
+    <p><a href="{% url 'album' photo.album.id %}">Вернуться к альбому</a></p>
+{% endblock %}

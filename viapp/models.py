@@ -1,11 +1,13 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 class Album(models.Model):
     #Альбом для просмотра фотографий
-    title = models.CharField(max_length=255, verbose_name="Название альбома")
-    description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    title = models.CharField(max_length=100, verbose_name="Название альбома")
+    description = models.TextField(blank=True, default="Без описания", verbose_name="Описание альбома")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    shared_with = models.ManyToManyField(User, blank=True, related_name="shared_albums",
+                                         verbose_name="Доступ для пользователей")
 
     def __str__(self):
         return self.title
@@ -15,8 +17,10 @@ class Album(models.Model):
         verbose_name_plural = "Альбомы"
 
 class Photo(models.Model):
+    title = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название фотографии")
+    description = models.TextField(blank=True, verbose_name="Описание фотографии")
     album = models.ForeignKey(Album, related_name="photos", on_delete=models.CASCADE, verbose_name="Альбом")
-    image = models.ImageField(upload_to='photos/', verbose_name="Изображение")
+    image = models.ImageField(upload_to='photos/', verbose_name=" Фотография")
     caption = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подпись")
     uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
 

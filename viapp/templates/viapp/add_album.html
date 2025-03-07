@@ -1,0 +1,12 @@
+{% extends 'viapp/base.html' %}
+
+{% block title %}Добавить альбом{% endblock %}
+
+{% block content %}
+    <h2>Добавить альбом</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Сохранить</button>
+    </form>
+{% endblock %}
