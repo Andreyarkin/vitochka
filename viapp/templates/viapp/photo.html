@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'viapp/base.html' %}
 
 {% block title %}{{ photo.title }}{% endblock %}
 
@@ -6,5 +6,5 @@
     <h2>{{ photo.title }}</h2>
     <img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="500">
     <p>{{ photo.description }}</p>
-    <p><a href="{% url 'album' photo.album.id %}">Вернуться к альбому</a></p>
+    <p><a href = "{% url 'viapp:album' photo.album_id %}">Вернуться к альбому</a></p>
 {% endblock %}

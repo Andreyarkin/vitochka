@@ -3,6 +3,7 @@
 {% block title %}{{ album.title }}{% endblock %}
 
 {% block content %}
+<a href = "{% url 'viapp:albums' %}">АЛЬБОМЫ</a>
 <h2>{{ album.title }}</h2>
 <p>{{ album.description }}</p>
 <p>Дата создания: {{ album.created_at }}</p>
@@ -10,7 +11,19 @@
 <!-- Список фотографий в альбоме -->
 <div>
   {% for photo in album.photos.all %}
-    <img src="{{ photo.image.url }}" alt="{{ photo.title }}">
+
+		<a href="{% url 'viapp:photo' photo.id %}">
+			{{ photo.title }}
+		</a>
+
+		<style>
+			.thumbnail {
+        width: 200px;
+        height: 150px;
+        object-fit: cover; /* Сохраняет пропорции */
+      }
+		</style>
+		<img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="thumbnail">
   {% endfor %}
 </div>
 {% endblock %}

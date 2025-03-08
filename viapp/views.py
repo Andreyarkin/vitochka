@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Album
+from .models import Album, Photo
 
 # Create your views here.
 def index(request):
@@ -12,12 +12,15 @@ def albums(request):
     context = {'albums': albums}
     return render(request, 'viapp/albums.html', {'albums': albums})
 
-def album(request):
-    # страница альбома
-    albums = Album.objects.all().order_by('-created_at')
-    return render(request, 'viapp/album.html', {'albums': albums})
+def album(request, album_id):
+    # страница альбома. Выводит альбом и фотографии в нем содержащиеся
+    album = Album.objects.get(id = album_id)
+    photo = album.photos.order_by('-uploaded_at')
+    context = {'album':album, 'photo':photo}
+    return render(request, 'viapp/album.html', context)
 
-def photo(request, pk):
+def photo(request, photo_id):
     #страница фотографии
-    album = Album.objects.get(pk=pk)
-    return render(request, 'viapp/photo.html', {'album': album})
+    photo = Photo.objects.get(id = photo_id)
+    context = {'photo':photo}
+    return render(request, 'viapp/photo.html', context)

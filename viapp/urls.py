@@ -6,8 +6,8 @@ from . import views
 
 app_name = 'viapp'
 urlpatterns = [
-    path('', views.index, name='index'),                    # Домашняя страница
-    path('albums/', views.albums, name='albums'),           # Страница альбомов
-    path('album/', views.album, name='album'),               # Страница альбома
-    path('album/<int:pk>/', views.photo, name='photo'),     # Страница фотографии
+    path('', views.index, name='index'),                            # Домашняя страница
+    path('albums/', views.albums, name='albums'),                   # Страница альбомов
+    path('albums/<int:album_id>/', views.album, name='album'),      # Страница альбома
+    path('album/<int:photo_id>/', views.photo, name='photo'),       # Страница фотографии
 ]
