@@ -4,7 +4,7 @@
 
 {% block content %}
     <h2>Добавить альбом</h2>
-    <form method="post">
+    <form action="{% url 'viapp:add_album' %}" method="post">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Сохранить</button>

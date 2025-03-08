@@ -9,7 +9,7 @@ class AlbumForm(forms.ModelForm):
 class PhotoForm(forms.ModelForm):
     class Meta:
         model = Photo
-        fields = ['album', 'image', 'caption']
+        fields = ['title', 'image', 'album']
 
 
 

@@ -4,7 +4,7 @@
 
 {% block content %}
     <h2>Добавить фотографию</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form action="{% url 'viapp:add_photo' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Сохранить</button>

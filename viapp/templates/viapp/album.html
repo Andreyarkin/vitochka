@@ -26,4 +26,9 @@
 		<img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="thumbnail">
   {% endfor %}
 </div>
+
+<a href="{% url 'viapp:add_photo' %}"  >
+	добавить новое фото
+</a>
+
 {% endblock %}
