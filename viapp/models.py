@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 
 
@@ -10,6 +9,7 @@ class Album(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 	shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="shared_albums",
 	                                     verbose_name="Доступ для пользователей")
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 	def __str__(self):
 		return self.title
