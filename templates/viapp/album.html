@@ -27,8 +27,10 @@
   {% endfor %}
 </div>
 
+	{% if request.user.is_superuser %}
 <a href="{% url 'viapp:add_photo' %}"  >
 	добавить новое фото
 </a>
+	{% endif %}
 
 {% endblock %}

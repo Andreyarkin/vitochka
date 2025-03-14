@@ -17,9 +17,10 @@
 		<li> Альбомов пока нет. </li>
 	{% endfor %}
 </ul>
-
+	{% if request.user.is_superuser %}
 <a href="{% url 'viapp:add_album' %}"  >
 	добавить новый альбом
 </a>
+	{% endif %}
 
 {% endblock %}
