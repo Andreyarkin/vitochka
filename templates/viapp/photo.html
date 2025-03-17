@@ -10,5 +10,14 @@
 <a href = "{% url 'viapp:download_photo' photo.id %}" class="btn btn-primary"> скачать фото
 </a>
 
+<p>
+</p>
+{% if request.user.is_superuser %}
+        <a href="{% url 'viapp:delete_photo' photo.id %}" class="btn btn-danger"
+           onclick="return confirm('Удалить фото? Это действие нельзя отменить!')">
+            Удалить фото
+        </a>
+{% endif %}
+
 <p><a href="{% url 'viapp:album' photo.album_id %}">Вернуться к альбому</a></p>
 {% endblock %}

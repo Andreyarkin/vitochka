@@ -7,7 +7,7 @@ from django.http import FileResponse
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
 
-# проверка того, является ли пользователь администратором
+# декоратор - проверка того, является ли пользователь администратором
 def admin_required(view_func):
     """Декоратор для проверки прав суперпользователя."""
     def wrapper(request, *args, **kwargs):
@@ -102,6 +102,11 @@ def download_photo(request, photo_id):
 	response['Content-Disposition'] = f'attachment; filename = "{photo.image.name}"'
 	return response
 
+
+def delete_photo(request, photo_id):
+	photo = Photo.objects.get(id=photo_id)
+	photo.delete()
+	return redirect('viapp:album', album_id=photo.album.id)
 
 
 
