@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.contrib.auth.decorators import user_passes_test
+from django.http import FileResponse
 
 
 from .models import Album, Photo
@@ -53,7 +53,6 @@ def photo(request, photo_id):
 	return render(request, 'viapp/photo.html', context)
 
 # функция добавления альбома
-
 @login_required()
 @admin_required
 def add_album(request):
@@ -88,6 +87,20 @@ def add_photo(request):
 			print(form.errors)
 	context = {'form' : form}
 	return render(request, 'viapp/add_photo.html', context)
+
+# Функция загрузки фото
+@login_required()
+def download_photo(request, photo_id):
+	photo = Photo.objects.get(id = photo_id)
+	if not request.user.is_superuser and photo.album.owner != request.user:
+		raise PermissionDenied()
+	else:
+		file = open(photo.image.path, 'rb')
+		response = FileResponse(file)
+
+	# Имя файла для скачивания
+	response['Content-Disposition'] = f'attachment; filename = "{photo.image.name}"'
+	return response
 
 
 

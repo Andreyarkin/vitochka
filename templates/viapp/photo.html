@@ -3,8 +3,12 @@
 {% block title %}{{ photo.title }}{% endblock %}
 
 {% block content %}
-    <h2>{{ photo.title }}</h2>
-    <img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="500">
-    <p>{{ photo.description }}</p>
-    <p><a href = "{% url 'viapp:album' photo.album_id %}">Вернуться к альбому</a></p>
+<h2>{{ photo.title }}</h2>
+<img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="500">
+<p>{{ photo.description }}</p>
+
+<a href = "{% url 'viapp:download_photo' photo.id %}" class="btn btn-primary"> скачать фото
+</a>
+
+<p><a href="{% url 'viapp:album' photo.album_id %}">Вернуться к альбому</a></p>
 {% endblock %}
