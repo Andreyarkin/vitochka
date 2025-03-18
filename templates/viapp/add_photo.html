@@ -3,7 +3,7 @@
 {% block title %}Добавить фотографию{% endblock %}
 
 {% block content %}
-    <h2>Добавить фотографию</h2>
+    <h2>Добавить фотографии</h2>
     <form action="{% url 'viapp:add_photo' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}

@@ -72,11 +72,10 @@ def add_album(request):
 	context = {'form' : form}
 	return render(request, 'viapp/add_album.html', context)
 
-# функция добавления фотографии
+# функция добавления фотографий
 @login_required()
 @admin_required
 def add_photo(request):
-	# Страница добавления фотографии
 	if request.method != 'POST':
 		form = PhotoForm()
 	else:
