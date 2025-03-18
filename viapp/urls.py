@@ -23,4 +23,5 @@ urlpatterns = [
     path('download_photo/<int:photo_id>/', views.download_photo, name = 'download_photo'),
     # Страница удаления фотографии для администратора
     path('delete_photo/<int:photo_id>/', views.delete_photo, name = 'delete_photo'),
+    path('download_album/<int:album_id>', views.download_album, name = 'download_album')
 ]

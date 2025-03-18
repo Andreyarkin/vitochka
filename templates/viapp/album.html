@@ -8,6 +8,16 @@
 <p>{{ album.description }}</p>
 <p>Дата создания: {{ album.created_at }}</p>
 
+{% if request.user.is_superuser or album.owner == request.user %}
+    <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-success">
+        Скачать весь альбом (ZIP)
+    </a>
+{% endif %}
+
+<p>
+
+</p>
+
 <!-- Список фотографий в альбоме -->
 <div>
   {% for photo in album.photos.all %}
@@ -27,10 +37,16 @@
   {% endfor %}
 </div>
 
+<p>
+
+</p>
+
 	{% if request.user.is_superuser %}
 <a href="{% url 'viapp:add_photo' %}"  >
 	добавить новое фото
 </a>
 	{% endif %}
+
+
 
 {% endblock %}

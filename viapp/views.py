@@ -1,8 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 
+import zipfile
+import os
+from io import BytesIO
 
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
@@ -77,14 +80,20 @@ def add_photo(request):
 	if request.method != 'POST':
 		form = PhotoForm()
 	else:
-		form = PhotoForm(data = request.POST, files=request.FILES)
+		form = PhotoForm(request.POST, request.FILES)
 		if form.is_valid():
-			photo_add = form.save()
-			photo_add.album.owner = request.user
-			photo_add.save()
-			return redirect ('viapp:album', album_id=photo_add.album.id)
-		else:
-			print(form.errors)
+			album = form.cleaned_data['album']
+			images = request.FILES.getlist('images')
+
+			for image in images:
+				Photo.objects.create(
+					album = album,
+					title = form.cleaned_data.get('title', ''),
+					description = form.cleaned_data.get('description', ''),
+					image = image
+				)
+			return redirect('viapp:album', album_id = album.id)
+
 	context = {'form' : form}
 	return render(request, 'viapp/add_photo.html', context)
 
@@ -102,11 +111,30 @@ def download_photo(request, photo_id):
 	response['Content-Disposition'] = f'attachment; filename = "{photo.image.name}"'
 	return response
 
-
+@login_required()
 def delete_photo(request, photo_id):
 	photo = Photo.objects.get(id=photo_id)
-	photo.delete()
-	return redirect('viapp:album', album_id=photo.album.id)
+	if not request.user.is_superuser and photo.album.owner != request.user:
+		raise PermissionDenied()
+	else:
+		photo.delete()
+		return redirect('viapp:album', album_id=photo.album.id)
+
+def download_album(request, album_id):
+	album = Album.objects.get(id = album_id)
+	zip_buffer = BytesIO()
+	with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+		for photo in album.photos.all():
+			photo_path = photo.image.path
+			if os.path.exists(photo_path):
+				zip_file.write(photo_path, os.path.basename(photo_path))
+
+	zip_buffer.seek(0)
+	response = HttpResponse(zip_buffer, content_type='application/zip')
+	response['Content-Disposition'] = f'attachment; filename = "{album.title}.zip"'
+	return response
+
+
 
 
 
