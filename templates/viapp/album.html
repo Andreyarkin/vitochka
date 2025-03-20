@@ -8,6 +8,8 @@
 <p>{{ album.description }}</p>
 <p>Дата создания: {{ album.created_at }}</p>
 
+
+<!-- Скачать альбом -->
 {% if request.user.is_superuser or album.owner == request.user %}
     <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-success">
         Скачать весь альбом (ZIP)
@@ -15,7 +17,17 @@
 {% endif %}
 
 <p>
+</p>
 
+<!-- Удалить альбом -->
+{% if request.user.is_superuser %}
+        <a href="{% url 'viapp:delete_album' album.id %}" class="btn btn-danger"
+           onclick="return confirm('Удалить альбом? Это действие нельзя отменить!')">
+            Удалить альбом
+        </a>
+{% endif %}
+
+<p>
 </p>
 
 <!-- Список фотографий в альбоме -->
@@ -38,11 +50,11 @@
 </div>
 
 <p>
-
 </p>
 
+<!-- Добавить новые фотографии в альбом -->
 	{% if request.user.is_superuser %}
-<a href="{% url 'viapp:add_photo' %}"  >
+<a href="{% url 'viapp:add_photo' album.id %}"  >
 	добавить новые фотографии
 </a>
 	{% endif %}

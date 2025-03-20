@@ -18,11 +18,13 @@ urlpatterns = [
     # Страница добавления альбома
     path('add_album/', views.add_album, name='add_album'),
     # Страница добавления фотографии
-    path('add_photo/', views.add_photo, name='add_photo'),
+    path('add_photo/<int:album_id>/', views.add_photo, name='add_photo'),
     # Страница скачивания фотографий
     path('download_photo/<int:photo_id>/', views.download_photo, name = 'download_photo'),
-    # Страница удаления фотографии для администратора
+    # Страница удаления фотографии (для администратора)
     path('delete_photo/<int:photo_id>/', views.delete_photo, name = 'delete_photo'),
     # Страница для скачивания альбома целиком
-    path('download_album/<int:album_id>', views.download_album, name = 'download_album')
+    path('download_album/<int:album_id>', views.download_album, name = 'download_album'),
+    # Страница удаления альбома (для администратора)
+    path('delete_album/<int:album_id>/', views.delete_album, name = 'delete_album'),
 ]

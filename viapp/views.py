@@ -75,13 +75,14 @@ def add_album(request):
 # функция добавления фотографий
 @login_required()
 @admin_required
-def add_photo(request):
+def add_photo(request, album_id):
+	album = Album.objects.get(id=album_id)
+
 	if request.method != 'POST':
-		form = PhotoForm()
+		form = PhotoForm(initial={'album': album})
 	else:
 		form = PhotoForm(request.POST, request.FILES)
 		if form.is_valid():
-			album = form.cleaned_data['album']
 			images = request.FILES.getlist('images')
 
 			for image in images:
@@ -93,7 +94,7 @@ def add_photo(request):
 				)
 			return redirect('viapp:album', album_id = album.id)
 
-	context = {'form' : form}
+	context = {'form' : form, 'album': album}
 	return render(request, 'viapp/add_photo.html', context)
 
 # Функция загрузки фото
@@ -133,7 +134,13 @@ def download_album(request, album_id):
 	response['Content-Disposition'] = f'attachment; filename = "{album.title}.zip"'
 	return response
 
-
+def delete_album(request, album_id):
+	album = Album.objects.get(id=album_id)
+	if not request.user.is_superuser and photo.album.owner != request.user:
+		raise PermissionDenied()
+	else:
+		album.delete()
+		return redirect('viapp:albums')
 
 
 
