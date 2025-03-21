@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     # сторонние приложения
     'django_bootstrap5',
+    'django_extensions',
 
     # приложения по умолчанию
     'django.contrib.admin',
@@ -141,3 +142,5 @@ LOGIN_REDIRECT_URL = 'index'
 LOGOUT_REDIRECT_URL = 'index'
 
 LOGIN_URL = '/users/login/'
+
+SHELL_PLUS = "ipython"

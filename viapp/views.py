@@ -49,10 +49,28 @@ def album(request, album_id):
 def photo(request, photo_id):
 	#страница фотографии
 	photo = Photo.objects.get(id = photo_id)
+	album = photo.album
+
+	# Все фото в альбоме отсортированные по ID
+	all_photos = Photo.objects.filter(album=album).order_by('id')
+
+	# Находим текущий индекс фото в списке
+	photo_list = list(all_photos)
+	current_index = photo_list.index(photo)
+
+	# Следующее фото
+	next_photo = photo_list[current_index+1] if current_index + 1 < len(photo_list) else None
+
+	# Предыдущее фото
+	prev_photo = photo_list[current_index-1] if current_index - 1 >= 0 else None
+
 	# Проверка того, что фото принадлежит текущему пользователю.
 	if not request.user.is_superuser and photo.album.owner != request.user:
 		raise PermissionDenied()
-	context = {'photo':photo}
+	context = {'photo':photo,
+				'next_photo': next_photo,
+				'prev_photo': prev_photo,
+				}
 	return render(request, 'viapp/photo.html', context)
 
 # функция добавления альбома
