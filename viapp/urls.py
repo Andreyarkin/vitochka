@@ -3,7 +3,6 @@
 from django.urls import path
 
 from . import views
-from .views import download_photo
 
 app_name = 'viapp'
 urlpatterns = [
@@ -27,4 +26,6 @@ urlpatterns = [
     path('download_album/<int:album_id>', views.download_album, name = 'download_album'),
     # Страница удаления альбома (для администратора)
     path('delete_album/<int:album_id>/', views.delete_album, name = 'delete_album'),
+    # Страница удаления нескольких выбранных фотографий в альбоме
+    path('delete_selected_photos/<int:album_id>/', views.delete_selected_photos, name = 'delete_selected_photos'),
 ]

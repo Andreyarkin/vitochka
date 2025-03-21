@@ -8,7 +8,6 @@
 <p>{{ album.description }}</p>
 <p>Дата создания: {{ album.created_at }}</p>
 
-
 <!-- Скачать альбом -->
 {% if request.user.is_superuser or album.owner == request.user %}
     <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-success">
@@ -52,6 +51,49 @@
 <p>
 </p>
 
+<!-- Форма для выбора фотографий -->
+<form method="post" action="{% url 'viapp:delete_selected_photos' album.id %}">
+    {% csrf_token %}
+    <div>
+        {% for photo in album.photos.all %}
+
+                <!-- Чекбокс для выбора фотографии -->
+                <input
+                    type="checkbox"
+                    name="photo_ids"
+                    value="{{ photo.id }}"
+                    style="margin-right: 10px;"
+                >
+                <!-- Ссылка на фотографию -->
+                <a href="{% url 'viapp:photo' photo.id %}">
+                    <img
+                        src="{{ photo.image.url }}"
+                        alt="{{ photo.title }}"
+                        class="thumbnail"
+                        style="vertical-align: middle;"
+                    >
+                </a>
+
+        {% endfor %}
+    </div>
+
+<p>
+</p>
+    <!-- Кнопка удаления выбранных фотографий -->
+    {% if album.photos.exists %}
+        <button
+            type="submit"
+            class="btn btn-danger"
+            onclick="return confirm('Удалить выбранные фотографии?')"
+        >
+            Удалить выбранные
+        </button>
+    {% endif %}
+</form>
+
+<p>
+</p>
+
 <!-- Добавить новые фотографии в альбом -->
 	{% if request.user.is_superuser %}
 <a href="{% url 'viapp:add_photo' album.id %}"  >
@@ -59,6 +101,21 @@
 </a>
 	{% endif %}
 
+<p>
+</p>
+<!-- Выбрать все фотографии в альбоме -->
+<div style="margin-bottom: 10px;">
+    <input type="checkbox" id="select-all">
+    <label for="select-all">Выбрать все</label>
+</div>
 
+<script>
+    document.getElementById('select-all').onclick = function() {
+        var checkboxes = document.getElementsByName('photo_ids');
+        for (var checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    }
+</script>
 
 {% endblock %}

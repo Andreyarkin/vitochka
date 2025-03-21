@@ -160,6 +160,26 @@ def delete_album(request, album_id):
 		album.delete()
 		return redirect('viapp:albums')
 
+def delete_selected_photos(request, album_id):
+	album = Album.objects.get(id=album_id)
+
+	# Проверка прав
+	if not request.user.is_superuser and album.owner != request.user:
+		raise PermissionDenied("У вас нет прав на удаление фотографий")
+
+	if request.method == 'POST':
+		photo_ids = request.POST.getlist('photo_ids')
+		if photo_ids:
+			# Удаляем только фотографии из текущего альбома
+			Photo.objects.filter(
+				id__in=photo_ids,
+				album=album
+			).delete()
+
+		return redirect('viapp:album', album_id=album.id)
+
+	return redirect('viapp:album', album_id=album.id)
+
 
 
 
