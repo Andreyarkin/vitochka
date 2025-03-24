@@ -10,6 +10,14 @@ class Album(models.Model):
 	shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="shared_albums",
 	                                     verbose_name="Доступ для пользователей")
 	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+	cover = models.ForeignKey(
+		'Photo',
+		on_delete=models.SET_NULL,
+		null=True,
+		blank=True,
+		verbose_name="Обложка альбома",
+		related_name="cover_for_albums"
+	)
 
 	def __str__(self):
 		return self.title
@@ -18,7 +26,6 @@ class Album(models.Model):
 		verbose_name = "Альбом"
 		verbose_name_plural = "Альбомы"
 
-
 class Photo(models.Model):
 	title = models.CharField(max_length=100, null=True, blank=True, verbose_name="Название фотографии")
 	description = models.TextField(blank=True, verbose_name="Описание фотографии")
@@ -26,6 +33,7 @@ class Photo(models.Model):
 	image = models.ImageField(upload_to='photos/', verbose_name=" Фотография")
 	caption = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подпись")
 	uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
+	order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
 
 	def __str__(self):
 		return f"{self.title} - альбом: {self.album.title}"
@@ -33,3 +41,4 @@ class Photo(models.Model):
 	class Meta:
 		verbose_name = "Фотография"
 		verbose_name_plural = "Фотографии"
+		ordering = ['order'] # сортировка по умолчанию

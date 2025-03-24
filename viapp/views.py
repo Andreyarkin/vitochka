@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 
 import zipfile
 import os
+import json
+
 from io import BytesIO
 
 from .models import Album, Photo
@@ -180,6 +182,30 @@ def delete_selected_photos(request, album_id):
 
 	return redirect('viapp:album', album_id=album.id)
 
+@login_required
+@admin_required
+def select_cover(request, album_id, photo_id):
+	album = Album.objects.get(id=album_id)
+	photo = Photo.objects.get(id=photo_id)
+
+	album.cover = photo
+	album.save()
+	return redirect('viapp:album', album_id=album.id)
+
+@login_required
+@admin_required
+def update_photo_order(request):
+	if request.method == 'POST':
+		try:
+			data = json.loads(request.body)
+			for item in data:
+				photo = Photo.objects.get(id=item['id'])
+				photo.order = item['order']
+				photo.save()
+			return JsonResponse({'status': 'success'})
+		except Exception as e:
+			return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+	return JsonResponse({'status': 'error'}, status=405)
 
 
 

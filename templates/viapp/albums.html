@@ -8,8 +8,17 @@
 <ul>
 	{% for album in albums %}
 		<li>
-			<!-- Ссылка на детальную страницу альбома -->
+			<!-- Ссылка на альбом -->
 			<a href="{% url 'viapp:album' album.id %}">
+				{% if album.cover %}
+				<img
+					src = "{{ album.cover.image.url }}"
+					alt = "Обложка альбома"
+					style="max-width: 100px;"
+				>
+				{% else %}
+					<div> Нет обложки </div>
+				{% endif %}
 				{{ album.title }} ({{ album.created_at|date:"d.m.Y" }}) {{ album.description }}
 			</a>
 		</li>
@@ -22,5 +31,6 @@
 	добавить новый альбом
 </a>
 	{% endif %}
+
 
 {% endblock %}
