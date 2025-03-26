@@ -1,36 +1,57 @@
 {% extends 'viapp/base.html' %}
+{% load django_bootstrap5 %}
 
 {% block title %}Список альбомов{% endblock %}
 
 {% block content %}
-	<h2>Список альбомов</h2>
+<div class="card shadow">
+    <div class="card-header bg-primary text-white">
+        <h2 class="mb-0">Список альбомов</h2>
+    </div>
+    
+    <div class="card-body">
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for album in albums %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <a href="{% url 'viapp:album' album.id %}" class="text-decoration-none text-dark">
+                        {% if album.cover %}
+                        <img src="{{ album.cover.image.url }}"
+                             class="card-img-top"
+                             alt="Обложка альбома"
+                             style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                             style="height: 200px;">
+                            <span class="text-white">Нет обложки</span>
+                        </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ album.title }}</h5>
+                            <p class="card-text text-muted">
+                                {{ album.description|truncatechars:50 }}
+                            </p>
+                            <small class="text-muted">
+                                {{ album.created_at|date:"d.m.Y" }}
+                            </small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col">
+                <div class="alert alert-info">Альбомов пока нет</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-<ul>
-	{% for album in albums %}
-		<li>
-			<!-- Ссылка на альбом -->
-			<a href="{% url 'viapp:album' album.id %}">
-				{% if album.cover %}
-				<img
-					src = "{{ album.cover.image.url }}"
-					alt = "Обложка альбома"
-					style="max-width: 100px;"
-				>
-				{% else %}
-					<div> Нет обложки </div>
-				{% endif %}
-				{{ album.title }} ({{ album.created_at|date:"d.m.Y" }}) {{ album.description }}
-			</a>
-		</li>
-	{% empty %}
-		<li> Альбомов пока нет. </li>
-	{% endfor %}
-</ul>
-	{% if request.user.is_superuser %}
-<a href="{% url 'viapp:add_album' %}"  >
-	добавить новый альбом
-</a>
-	{% endif %}
-
-
+    {% if request.user.is_superuser %}
+    <div class="card-footer">
+        <a href="{% url 'viapp:add_album' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Добавить альбом
+        </a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

@@ -8,6 +8,8 @@
 
 <p>{{ photo.description }}</p>
 
+<!-- Выбрать обложкой альбома -->
+
 <!-- Скачать фото -->
 <a href = "{% url 'viapp:download_photo' photo.id %}" class="btn btn-primary"> скачать фото
 </a>
@@ -37,5 +39,19 @@
         <a href="{% url 'viapp:photo' next_photo.id %}" class="btn btn-primary">Следующая →</a>
     {% endif %}
 </div>
+
+
+
+
+
+<!-- Скрипт для чекбокса -->
+<script>
+    document.getElementById('select-all').onclick = function() {
+        var checkboxes = document.getElementsByName('photo_ids');
+        for (var checkbox of checkboxes) {
+            checkbox.checked = this.checked;
+        }
+    }
+</script>
 
 {% endblock %}
