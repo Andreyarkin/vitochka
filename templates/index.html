@@ -3,16 +3,57 @@
 {% block title %}Главная страница{% endblock %}
 
 {% block content %}
-<h2>Добро пожаловать!</h2>
-	<a href = "{% url 'viapp:albums' %}">АЛЬБОМЫ</a>
-<p> </p>
+<div class="container py-5">
+    <div class="p-5 mb-4 bg-light rounded-3">
+        <div class="container-fluid py-5 text-center">
+            <h1 class="display-4 fw-bold">Добро пожаловать!</h1>
+            <p class="fs-4">Ваш фотоархив всегда под рукой</p>
+            <a href="{% url 'viapp:albums' %}" class="btn btn-primary btn-lg mt-3">
+                Перейти к альбомам
+            </a>
+        </div>
+    </div>
 
-{% if user.is_authenticated %}
-  Hi {{ user.username }}!
-  <p><a href="{% url 'logout' %}">logout</a></p>
-{% else %}
-  <p>You are not logged in</p>
-  <a href="{% url 'login' %}">login</a> |
-  <a href="{% url 'signup' %}">signup</a>
-{% endif %}
+    <div class="row align-items-md-stretch text-center">
+        {% if user.is_authenticated %}
+        <div class="col-md-6 mb-4">
+            <div class="h-100 p-5 bg-white rounded-3">
+                <h2>Привет, {{ user.username }}!</h2>
+                <p>Рады снова видеть вас в системе</p>
+                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                    Выйти из системы
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="h-100 p-5 bg-dark text-white rounded-3">
+                <h2>Ваши возможности</h2>
+                <ul class="list-unstyled">
+                    <li> 📸 Просматривайте понравившиеся вам фотографии и сохраняйте их </li>
+                    {% if request.user.is_superuser %}
+                    <li>📁 Создавайте альбомы</li>
+                    <li>📸 Загружайте фотографии</li>
+                    <li>🔒 Контролируйте доступ</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6 offset-md-3">
+            <div class="h-100 p-5 bg-white border rounded-3">
+                <h2 class="mb-4">Начните работу</h2>
+                <p class="lead mb-4">Авторизуйтесь для доступа ко всем функциям</p>
+                <div class="d-grid gap-2 d-md-block">
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 me-md-2">
+                        Войти
+                    </a>
+                    <a href="{% url 'signup' %}" class="btn btn-outline-secondary btn-lg px-4">
+                        Регистрация
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

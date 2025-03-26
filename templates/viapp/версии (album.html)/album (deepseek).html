@@ -1,0 +1,193 @@
+{% extends 'viapp/base.html' %}
+{% load static %}
+
+{% block title %}{{ album.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="display-5 fw-bold">{{ album.title }}</h1>
+            <p class="lead text-muted">{{ album.description }}</p>
+            <p class="text-muted small">Создан: {{ album.created_at|date:"d.m.Y" }}</p>
+        </div>
+        <div class="btn-group">
+            <a href="{% url 'viapp:albums' %}" class="btn btn-outline-secondary">
+                ← Все альбомы
+            </a>
+            {% if request.user.is_superuser %}
+            <a href="{% url 'viapp:add_photo' album.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-lg"></i> Добавить фото
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'viapp:delete_selected_photos' album.id %}">
+        {% csrf_token %}
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4" id="photo-list">
+            {% for photo in album.photos.all %}
+            <div class="col">
+                <div class="card h-100 shadow-sm photo-item" 
+                     data-id="{{ photo.id}}"
+                     draggable="{% if request.user.is_superuser %}true{% else %}false{% endif %}">
+                    
+                    <div class="card-img-top position-relative">
+                        <a href="{% url 'viapp:photo' photo.id %}" class="d-block">
+                            <img src="{{ photo.image.url }}" 
+                                 class="img-fluid w-100" 
+                                 alt="{{ photo.title}}"
+                                 style="height: 250px; object-fit: cover;">
+                        </a>
+                        {% if request.user.is_superuser %}
+                        <div class="position-absolute top-0 start-0 m-2">
+                            <input class="form-check-input fs-5" 
+                                   type="checkbox" 
+                                   name="photo_ids" 
+                                   value="{{ photo.id }}">
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            {% if request.user.is_superuser %}
+                            <form action="{% url 'viapp:select_cover' album.id photo.id %}" method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-star-fill"></i> Обложка
+                                </button>
+                            </form>
+                            {% endif %}
+                            <small class="text-muted ms-auto">
+                                {{ photo.uploaded_at|date:"d.m.Y" }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if request.user.is_superuser and album.photos.exists %}
+        <div class="mt-5 border-top pt-4">
+            <div class="d-flex align-items-center gap-3">
+                <button type="submit" 
+                        class="btn btn-danger"
+                        onclick="return confirm('Удалить выбранные фотографии?')">
+                    <i class="bi bi-trash"></i> Удалить выбранные
+                </button>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="select-all">
+                    <label class="form-check-label" for="select-all">Выбрать все</label>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </form>
+
+    <div class="mt-5">
+        {% if request.user.is_superuser or album.owner == request.user %}
+        <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-outline-primary me-2">
+            <i class="bi bi-download"></i> Скачать ZIP
+        </a>
+        {% endif %}
+        
+        {% if request.user.is_superuser %}
+        <a href="{% url 'viapp:delete_album' album.id %}" 
+           class="btn btn-outline-danger"
+           onclick="return confirm('Удалить альбом? Это действие нельзя отменить!')">
+            <i class="bi bi-trash"></i> Удалить альбом
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.getElementById('select-all').onclick = function() {
+        const checkboxes = document.querySelectorAll('input[name="photo_ids"]');
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+    }
+</script>
+
+{% if request.user.is_superuser %}
+<script>
+    // Drag and drop скрипт из предыдущей версии
+    document.addEventListener('DOMContentLoaded', function() {
+        const photoList = document.getElementById('photo-list');
+        if (photoList) {
+            let draggedItem = null;
+
+            photoList.querySelectorAll('.photo-item').forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedItem = this;
+                    this.style.opacity = '0.5';
+                });
+
+                item.addEventListener('dragend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+
+            photoList.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                const afterElement = getDragAfterElement(photoList, e.clientY);
+                if (afterElement == null) {
+                    photoList.appendChild(draggedItem);
+                } else {
+                    photoList.insertBefore(draggedItem, afterElement);
+                }
+            });
+
+            photoList.addEventListener('dragend', async function() {
+                const photos = Array.from(photoList.children);
+                const orderData = photos.map((item, index) => ({
+                    id: parseInt(item.dataset.id),
+                    order: index + 1
+                }));
+
+                try {
+                    const response = await fetch('{% url "viapp:update_photo_order" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify(orderData)
+                    });
+                    if (response.ok) location.reload();
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+            function getDragAfterElement(container, y) {
+                // ... существующая реализация ...
+            }
+        }
+    });
+</script>
+{% endif %}
+
+<style>
+    .photo-item {
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: grab;
+    }
+    .photo-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+    .photo-item[draggable="false"] {
+        cursor: default;
+        transform: none!important;
+    }
+    .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+    }
+</style>
+
+{% endblock %}
