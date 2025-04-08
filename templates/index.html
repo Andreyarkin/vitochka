@@ -1,22 +1,71 @@
 {% extends 'viapp/base.html' %}
 
-{% block title %}Главная страница{% endblock %}
+{% block title %}Домашняя страница{% endblock %}
 
 {% block content %}
+<style>
+    /* Устанавливаем фон всей страницы */
+    body {
+        background: url('/static/images/background.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Roboto', sans-serif; /* Изменение шрифта */
+    }
+
+    /* Кастомные стили для кнопок */
+    .btn-primary {
+        background-color: #ff5733; /* Новый цвет кнопки */
+        border-color: #ff5733;
+    }
+
+    .btn-primary:hover {
+        background-color: #e04e2c;
+    }
+
+    .btn-primary:focus,
+    .btn-primary:focus-visible,
+    .btn-primary:active:focus,
+    .btn-primary.active:focus,
+    .show > .btn-primary.dropdown-toggle:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 87, 51, 0.5) !important;
+        outline: none !important;
+        border-color: #ff5733 !important;
+    }
+    
+    .btn-outline-secondary {
+        color: #ff5733;
+        border-color: #ff5733;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #ff5733;
+        color: white;
+    }
+
+    /* Центрирование главного приветственного блока */
+    .welcome-section {
+        background: rgba(255, 255, 255, 0.8); /* Полупрозрачный фон */
+        padding: 20px;
+        border-radius: 10px;
+    }
+</style>
+
 <div class="container py-5">
-    <div class="p-5 mb-4 bg-light rounded-3">
-        <div class="container-fluid py-5 text-center">
+    <div class="row pe-5 mb-4 rounded-3"
+         >
+        <div class="col py-3 text-center"
+        style="background-color: rgba(255, 255, 255, 1);
+         margin-left: -250px; margin-top: -30px; max-width: 550px">
             <h1 class="display-4 fw-bold">Добро пожаловать!</h1>
             <p class="fs-4">Ваш фотоархив всегда под рукой</p>
             <a href="{% url 'viapp:albums' %}" class="btn btn-primary btn-lg mt-3">
                 Перейти к альбомам
             </a>
         </div>
-    </div>
-
-    <div class="row align-items-md-stretch text-center">
+        
         {% if user.is_authenticated %}
-        <div class="col-md-6 mb-4">
+        <div class="col-md-6 mb-4"
+        style="background-color: rgba(255, 255, 255, 1);
+         margin-left: 350px; margin-top: -30px; max-width: 550px">
             <div class="h-100 p-5 bg-white rounded-3">
                 <h2>Привет, {{ user.username }}!</h2>
                 <p>Рады снова видеть вас в системе</p>
@@ -29,7 +78,9 @@
             <div class="h-100 p-5 bg-dark text-white rounded-3">
                 <h2>Ваши возможности</h2>
                 <ul class="list-unstyled">
+                    {% if not request.user.is_superuser %}
                     <li> 📸 Просматривайте понравившиеся вам фотографии и сохраняйте их </li>
+                    {% endif %}
                     {% if request.user.is_superuser %}
                     <li>📁 Создавайте альбомы</li>
                     <li>📸 Загружайте фотографии</li>
