@@ -3,55 +3,67 @@
 {% block title %}{{ photo.title }}{% endblock %}
 
 {% block content %}
-<h2>{{ photo.title }}</h2>
-<img src="{{ photo.image.url }}" alt="{{ photo.title }}" width="400">
+<div class="container mt-4 ">
+    <div class="row justify-content-center justify-content-center">
+        <div class="col-md-8 d-flex justify-content-center ">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">{{ photo.title }}</h2>
+                </div>
+                    <div class="mb-3">
+                        <div class="image-container justify-content-center">
+                            <img src="{{ photo.image.url }}" alt="{{ photo.title }}" 
+                                 class="img-fluid object-fit-scale border rounded" >
+                        </div>
+                    </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <!-- Скачать фото -->
+                        <a href="{% url 'viapp:download_photo' photo.id %}" class="btn btn-primary">
+                            Скачать фото
+                        </a>
 
-<p>{{ photo.description }}</p>
+                        <!-- Удалить фото -->
+                        {% if request.user.is_superuser %}
+                            <a href="{% url 'viapp:delete_photo' photo.id %}" class="btn btn-danger"
+                               onclick="return confirm('Удалить фото? Это действие нельзя отменить!')">
+                                Удалить фото
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<!-- Выбрать обложкой альбома -->
+    <!-- Навигация -->
+    <div class="row justify-content-center mt-4 ">
+        <div class="col-md-8 ">
+            <div class="btn-group btn-group-lg w-100 ">
+                {% if prev_photo %}
+                    <a href="{% url 'viapp:photo' prev_photo.id %}" class="btn btn-outline-primary mx-1 rounded-4">
+                        ← Предыдущая
+                    </a>
+                {% endif %}
 
-<!-- Скачать фото -->
-<a href = "{% url 'viapp:download_photo' photo.id %}" class="btn btn-primary"> скачать фото
-</a>
+                {% if next_photo %}
+                    <a href="{% url 'viapp:photo' next_photo.id %}" class="btn btn-outline-primary mx-1 rounded-4">
+                        Следующая →
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
-<p>
-</p>
-<!-- Удалить фото -->
-{% if request.user.is_superuser %}
-        <a href="{% url 'viapp:delete_photo' photo.id %}" class="btn btn-danger"
-           onclick="return confirm('Удалить фото? Это действие нельзя отменить!')">
-            Удалить фото
+    <!-- Вернуться к альбому -->
+    <div class="text-center mt-3">
+        <a href="{% url 'viapp:album' photo.album_id %}" class="btn btn-secondary">
+            Вернуться к альбому
         </a>
-{% endif %}
-
-<!-- Вернуться к альбому -->
-<p><a href="{% url 'viapp:album' photo.album_id %}">Вернуться к альбому</a></p>
-
-<div class="photo-navigation">
-
-    <!-- Кнопка "Назад" -->
-    {% if prev_photo %}
-        <a href="{% url 'viapp:photo' prev_photo.id %}" class="btn btn-primary">← Предыдущая</a>
-    {% endif %}
-
-    <!-- Кнопка "Вперед" -->
-    {% if next_photo %}
-        <a href="{% url 'viapp:photo' next_photo.id %}" class="btn btn-primary">Следующая →</a>
-    {% endif %}
+    </div>
 </div>
+{% endblock %}
 
-
-
-
-
-<!-- Скрипт для чекбокса -->
-<script>
-    document.getElementById('select-all').onclick = function() {
-        var checkboxes = document.getElementsByName('photo_ids');
-        for (var checkbox of checkboxes) {
-            checkbox.checked = this.checked;
-        }
-    }
-</script>
+{% block extra_css %}
 
 {% endblock %}

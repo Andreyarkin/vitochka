@@ -3,13 +3,23 @@
 {% block title %}Добавить фотографию{% endblock %}
 
 {% block content %}
-    <h2>Добавить фотографии</h2>
-    <form action="{% url 'viapp:add_photo' album.id %}" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <!-- Скрытое поле для альбома -->
-        <input type="hidden" name="album" value="{{ album.id }}">
-        {{ form.as_p }}
-        <button type="submit">Загрузить</button>
-    </form>
-
+<div class="container mt-1 ms-1">
+    <div class="row justify-content-start">
+        <div class="col-md-8">
+            <h2 class="mb-4">Добавить фотографии</h2>
+            <form action="{% url 'viapp:add_photo' album.id %}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Скрытое поле для альбома -->
+                <input type="hidden" name="album" value="{{ album.id }}">
+                
+                <div class="form-group">
+                    {{ form.as_p|safe }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Загрузить</button>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}

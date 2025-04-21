@@ -9,10 +9,27 @@
     {% load django_bootstrap5 %}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
+<style>
+
+    /* 55px отступ от высоты первой панели */
+    body {
+        padding-top: 55px; 
+    }
+
+    /* фиксация сверху навигационной панели */
+    .first-nav {
+    position: fixed;
+    top: 0;
+    bottom:50;
+    width: 100%;
+    z-index: 1030; 
+    }
+
+</style>
 </head>
-<body class="bg-light">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-        <div class="container-fluid">
+<body>
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-dark mb-4 first-nav">
+        <div class="container-fluid ms-5">
             <a class="navbar-brand" href="{% url 'viapp:index' %}">VI PHOTO</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -25,14 +42,16 @@
                         Альбомы
                       </a>
                       <ul class="dropdown-menu">
+                        <li> <a class="dropdown-item" href="{% url 'viapp:albums' %}"> Список альбомов </a> </li>
+                        <li> <hr class="dropdown-divider"></li>
                         {% for album in albums %}
-                          <li><a class="dropdown-item" href="{% url 'viapp:album' album.id %}">
-                          {{ album.title }}</a></li>
+                        <li><a class="dropdown-item" href="{% url 'viapp:album' album.id %}">
+                        {{ album.title }}</a></li>
                         {% endfor %}
                       </ul>
                     </li>
                 </ul>
-                <div class="d-flex">
+                <div class="d-flex me-5">
                     {% if user.is_authenticated %}
                         <span class="navbar-text me-3">Привет, {{ user.username }}!</span>
                         <a href="{% url 'logout' %}" class="btn btn-outline-light">Выйти</a>
@@ -45,13 +64,11 @@
         </div>
     </nav>
 
-    <main class="container">
-        <div class="row justify-content-center">
-            <div class="col-12 col-md-10 col-lg-8">
+    <main>
+
                 {% bootstrap_messages %}
                 {% block content %}{% endblock %}
-            </div>
-        </div>
+
     </main>
 
     <!-- Bootstrap 5 JS -->

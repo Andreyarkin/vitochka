@@ -3,10 +3,20 @@
 {% block title %}Добавить альбом{% endblock %}
 
 {% block content %}
-    <h2>Добавить альбом</h2>
-    <form action="{% url 'viapp:add_album' %}" method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Сохранить</button>
-    </form>
+<div class="container-fluid ms-1 mt-1">
+ <div class="row justify-content-start">
+ <div class="col-md-8">
+ <h2 class="mb-4"><span class="badge bg-dark">Добавить альбом</span></h2>
+ <form action="{% url 'viapp:add_album' %}" method="post" class="needs-validation" novalidate>
+ {% csrf_token %}
+ 
+ <div class="form-group">
+ {{ form.as_p|safe }}
+ </div>
+ 
+ <button type="submit" class="btn btn-primary">Сохранить</button>
+ </form>
+ </div>
+ </div>
+</div>
 {% endblock %}

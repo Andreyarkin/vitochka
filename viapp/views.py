@@ -131,6 +131,7 @@ def download_photo(request, photo_id):
 	response['Content-Disposition'] = f'attachment; filename = "{photo.image.name}"'
 	return response
 
+# Функция удаления фото
 @login_required()
 def delete_photo(request, photo_id):
 	photo = Photo.objects.get(id=photo_id)
@@ -140,6 +141,7 @@ def delete_photo(request, photo_id):
 		photo.delete()
 		return redirect('viapp:album', album_id=photo.album.id)
 
+# Функция загрузки альбома
 def download_album(request, album_id):
 	album = Album.objects.get(id = album_id)
 	zip_buffer = BytesIO()
@@ -154,6 +156,7 @@ def download_album(request, album_id):
 	response['Content-Disposition'] = f'attachment; filename = "{album.title}.zip"'
 	return response
 
+# Функция удаления альбома
 def delete_album(request, album_id):
 	album = Album.objects.get(id=album_id)
 	if not request.user.is_superuser and photo.album.owner != request.user:
@@ -162,6 +165,7 @@ def delete_album(request, album_id):
 		album.delete()
 		return redirect('viapp:albums')
 
+# Функция удаления выбранных фото
 def delete_selected_photos(request, album_id):
 	album = Album.objects.get(id=album_id)
 
@@ -182,6 +186,7 @@ def delete_selected_photos(request, album_id):
 
 	return redirect('viapp:album', album_id=album.id)
 
+# Функция выбора обложки альбома
 @login_required
 @admin_required
 def select_cover(request, album_id, photo_id):
@@ -192,6 +197,7 @@ def select_cover(request, album_id, photo_id):
 	album.save()
 	return redirect('viapp:album', album_id=album.id)
 
+# Функция обновления порядка фотографий
 @login_required
 @admin_required
 def update_photo_order(request):

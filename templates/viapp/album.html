@@ -1,101 +1,187 @@
 {% extends 'viapp/base.html' %}
 
+
 {% block title %}{{ album.title }}{% endblock %}
 
 {% block content %}
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
 <style>
+  /* Устанавливаем требования к отображению картинок */
+
+  body {
+    padding-top: 270px; /* 50px для первой панели + 50px для второй */
+    }
+
+
   .photo-card {
-    width: 200px;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1; /* квадратная карточка, адаптивно */
+    overflow: hidden;
+    background: transparent; /* фон, если фото не полностью заполнит */
+    border: none; /* убираем рамку */
     transition: transform 0.2s;
     cursor: {% if request.user.is_superuser %}grab{% else %}default{% endif %};
+    /* Добавляем вертикальное выравнивание */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
   }
+  
   .photo-card:active { cursor: grabbing; }
-  .thumbnail { width: 100%; height: 150px; object-fit: cover; }
+  
+  .photo-card img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+
+  .photo-card-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+  }
+
+
+  /* фиксация сверху навигационной панели */
+  .second-nav {
+    position: fixed;
+    top: 55px; /* Высота первой панели */
+    width: 100%;
+    z-index: 1029; /* На 1 меньше, чем у первой панели */
+  }
+
+  /* 55px отступ для контейнера содержимого страницы */
+  .main-container {
+  top: 200px
+  }
 </style>
 
-<!-- Хлебные крошки -->
-<nav aria-label="breadcrumb">
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="{% url 'viapp:albums' %}">Альбомы</a></li>
-    <li class="breadcrumb-item active">{{ album.title }}</li>
-  </ol>
-</nav>
+<!-- Верхняя панель -->
+<nav class="navbar fixed-top navbar-light bg-light second-nav border-bottom border-3 border-dark ">
+  <div class="container-fluid main-container">
+    <div class="mx-5 w-100 d-flex justify-content-between align-items-center">
+      <div class="col-5">
+        <div class="row d-flex justify-content-start align-items-stretch">
+          <div class = "col-3 d-flex align-items-center">
 
-<div class="container mt-4">
-  <!-- Основная информация -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <h2 class="card-title">{{ album.title }}</h2>
-      <p class="card-text">{{ album.description }}</p>
-      <p class="card-text text-muted">Дата создания: {{ album.created_at }}</p>
-    </div>
-  </div>
+            <!-- Ссылка на все альбомы -->
+            <a href="{% url 'viapp:albums' %}" class="btn btn-outline-secondary">
+              ← Все альбомы    
+            </a>
+          </div>
+          {% if request.user.is_superuser or album.owner == request.user %}
+          <div class = "col-5 d-flex align-items-center">
 
-  <!-- Управление для админа -->
-  {% if request.user.is_superuser %}
-  <div class="d-flex gap-2 mb-3">
-    <a href="{% url 'viapp:add_photo' album.id %}" class="btn btn-primary">
-      <i class="bi bi-plus-circle"></i> Добавить фото
-    </a>
-    <button type="button" class="btn btn-danger" onclick="deleteSelected()">
-      <i class="bi bi-trash"></i> Удалить выбранные
-    </button>
-    <a href="{% url 'viapp:delete_album' album.id %}" class="btn btn-danger ms-auto"
-       onclick="return confirm('Удалить альбом?')">
-      <i class="bi bi-trash"></i> Удалить альбом
-    </a>
-  </div>
-  {% endif %}
-
-  <!-- Список фотографий -->
-  <form id="photoForm" method="post" action="{% url 'viapp:delete_selected_photos' album.id %}">
-    {% csrf_token %}
-    <div class="row g-3" id="photo-list">
-      {% for photo in album.photos.all %}
-      <div class="col-6 col-md-3 photo-item" data-id="{{ photo.id }}"
-           draggable="{% if request.user.is_superuser %}true{% else %}false{% endif %}">
-        
-        <div class="photo-card card h-100">
-          <!-- Чекбокс -->
-          {% if request.user.is_superuser %}
-          <div class="form-check m-2">
-            <input class="form-check-input" type="checkbox" name="photo_ids" value="{{ photo.id }}">
+            <!-- Скачать альбом -->
+            <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-outline-secondary">
+              <i class="bi bi-download"></i> Скачать альбом (ZIP)
+            </a>
           </div>
           {% endif %}
+        </div>
 
-          <!-- Изображение -->
-          <a href="{% url 'viapp:photo' photo.id %}">
-            <img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="thumbnail card-img-top">
+        <!-- Наименование Альбома -->
+        <h1 class="display-5 fw-bold">{{ album.title }}</h1>
+        <p class="text-muted small">Создан: {{ album.created_at|date:"d.m.Y" }}</p>
+      </div>
+
+      <!-- Блок только для администратора -->
+      {% if request.user.is_superuser %}
+
+      <!-- Группа кнопок (admin_only) -->
+      <div class="btn-group d-flex flex-column justify-content-between align-items-end ">
+
+          <!-- Загрузить фотографии -->
+          <a href="{% url 'viapp:add_photo' album.id %}" class="btn btn-outline-primary rounded-2 my-2">
+            <i class="bi bi-plus-lg"></i> Загрузить фотографии в альбом
           </a>
 
-          <!-- Кнопка обложки -->
+          <!-- Удалить выбранные фотографии -->
+
+          <button type="button" class="btn btn-outline-warning rounded-2 my-2" onclick="deleteSelected()">
+            <i class="bi bi-trash"></i> Удалить выбранные фотографии
+          </button>
+
+          <!-- Удалить альбом целиком -->
+          <a href="{% url 'viapp:delete_album' album.id %}" class="btn btn-outline-danger rounded-2 my-2"
+               onclick="return confirm('Удалить альбом?')">
+            <i class="bi bi-trash"></i> Удалить альбом целиком
+          </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- Все содержимое страницы -->
+<div class="container-fluid main-container">
+
+<!-- Список фотографий в альбоме -->
+<form id="photoForm" method="post" action="{% url 'viapp:delete_selected_photos' album.id %}">
+  {% csrf_token %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-6 row-cols-xxl-6 g-4 mx-2" 
+       id="photo-list">
+
+    {% for photo in album.photos.all %}
+
+    <div class="photo-item " data-id="{{ photo.id }}"
+         draggable="{% if request.user.is_superuser %}true{% else %}false{% endif %}">
+      
+      <!-- Карточка фотографий -->
+      <a href="{% url 'viapp:photo' photo.id %}" class="photo-card-link">
+        <div class='photo-card card '>
+
+          <!-- Чекбокс для выбора фотографии только для админа -->
           {% if request.user.is_superuser %}
-          <div class="card-body p-2">
+          <div class="position-absolute bottom-0 end-0 mx-3 my-2 ">
+            <input class="form-check-input border border-1 border-dark" type="checkbox" name="photo_ids" value="{{ photo.id }}">
+          </div>
+
+          <!-- Кнопка сделать фото обложкой альбома -->
+          <div class="position-absolute bottom-0 start-0 mx-3 my-2">
             <form action="{% url 'viapp:select_cover' album.id photo.id %}" method="post" class="d-inline">
               {% csrf_token %}
-              <button type="submit" class="btn btn-info btn-sm w-100">
-                <i class="bi bi-star"></i> Обложка
+              <button type="submit" 
+                      class="btn btn-outline-dark btn-sm w-100"
+                      data-bs-toggle="tooltip" 
+                      title="Сделать обложкой"
+                      data-bs-placement="top">
+                <i class="bi bi-star"></i>
               </button>
             </form>
           </div>
           {% endif %}
+          <!-- Отображение фотографий с ссылкой в изображении -->
+            <img src="{{ photo.image.url }}" class ="img-fluid object-fit-scale border rounded" alt="{{ photo.title }}"> 
         </div>
-      </div>
-      {% endfor %}
+      </a>
     </div>
-  </form>
-
-  <!-- Скачать альбом -->
-  {% if request.user.is_superuser or album.owner == request.user %}
-  <div class="mt-3">
-    <a href="{% url 'viapp:download_album' album.id %}" class="btn btn-success">
-      <i class="bi bi-download"></i> Скачать альбом (ZIP)
-    </a>
+    {% endfor %}
   </div>
-  {% endif %}
+
+</form>
+
+
+
+<!-- Выбрать все фотографии в альбоме -->
+{% if request.user.is_superuser %}
+<div class = "float-end my-5 me-5">
+  <div style="margin-bottom: 10px;">
+    <input type="checkbox" id="select-all">
+    <label for="select-all">
+      <p class="fs-4"> Выбрать все фотографии </p>
+  </label>
+  </div>
+</div>
+{% endif %}
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -178,4 +264,6 @@
   });
   {% endif %}
 </script>
+
+
 {% endblock %}
