@@ -1,7 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.http import HttpResponseForbidden
+from django.db.models import Q
 from django.http import FileResponse, HttpResponse, JsonResponse
+from django.contrib.auth import get_user_model
 
 import zipfile
 import os
@@ -14,12 +17,12 @@ from .forms import AlbumForm, PhotoForm
 
 # декоратор - проверка того, является ли пользователь администратором
 def admin_required(view_func):
-    """Декоратор для проверки прав суперпользователя."""
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_superuser:
-            raise PermissionDenied("Доступ запрещён.")
-        return view_func(request, *args, **kwargs)
-    return wrapper
+	"""Декоратор для проверки прав суперпользователя."""
+	def wrapper(request, *args, **kwargs):
+		if not request.user.is_superuser:
+			raise PermissionDenied("Доступ запрещён.")
+		return view_func(request, *args, **kwargs)
+	return wrapper
 
 # Create your views here.
 def index(request):
@@ -32,16 +35,22 @@ def albums(request):
 	if request.user.is_superuser:
 		albums = Album.objects.all().order_by('-created_at')
 	else:
-		albums = Album.objects.filter(owner = request.user).order_by('-created_at')
+		albums = Album.objects.filter(
+			Q(owner=request.user) | Q(shared_with=request.user)
+		).distinct().order_by('-created_at')
 	context = {'albums': albums}
 	return render(request, 'viapp/albums.html', context)
 
 @login_required()
 def album(request, album_id):
 	# страница альбома. Выводит альбом и фотографии в нем содержащиеся
-	album = Album.objects.get(id = album_id)
+	album = get_object_or_404(Album, id=album_id)
 	# Проверка того, что альбом принадлежит текущему пользователю.
-	if not request.user.is_superuser and album.owner != request.user:
+	if not (
+			request.user.is_superuser or
+			album.owner == request.user or
+			request.user in album.shared_with.all()
+	):
 		raise PermissionDenied()
 	photo = album.photos.order_by('-uploaded_at')
 	context = {'album':album, 'photo':photo}
@@ -50,7 +59,7 @@ def album(request, album_id):
 @login_required()
 def photo(request, photo_id):
 	#страница фотографии
-	photo = Photo.objects.get(id = photo_id)
+	hoto = get_object_or_404(Photo, id=photo_id)
 	album = photo.album
 
 	# Все фото в альбоме отсортированные по ID
@@ -67,7 +76,11 @@ def photo(request, photo_id):
 	prev_photo = photo_list[current_index-1] if current_index - 1 >= 0 else None
 
 	# Проверка того, что фото принадлежит текущему пользователю.
-	if not request.user.is_superuser and photo.album.owner != request.user:
+	if not (
+			request.user.is_superuser
+			or photo.album.owner != request.user
+			or request.user in album.shared_with.all()
+	):
 		raise PermissionDenied()
 	context = {'photo':photo,
 				'next_photo': next_photo,
@@ -213,6 +226,47 @@ def update_photo_order(request):
 			return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 	return JsonResponse({'status': 'error'}, status=405)
 
+def user_albums(request):
+	user = request.user
+	if not user.is_authenticated:
+		return HttpResponseForbidden("Необходимо войти в систему")
+
+	albums = Album.objects.filter(
+		Q(owner=user) | Q(shared_with=user)
+	).distinct()
+
+	return render(request, "albums.html", {"albums": albums})
+
+def album_photos(request, album_id):
+	user = request.user
+	album = get_object_or_404(Album, id=album_id)
+
+	# Проверка доступа
+	if user != album.owner and user not in album.shared_with.all():
+		return HttpResponseForbidden("У вас нет доступа к этому альбому")
+
+	photos = album.photos.all()
+	return render(request, "photos.html", {"album": album, "photos": photos})
+
+@login_required
+def share_album(request, album_id):
+	album = get_object_or_404(Album, id=album_id)
+
+	# Только владелец или суперюзер может делиться
+	if not request.user.is_superuser and album.owner != request.user:
+		return HttpResponseForbidden("У вас нет прав делиться этим альбомом")
+
+	if request.method == "POST":
+		user_ids = request.POST.getlist("users")
+		User = get_user_model()
+		users = User.objects.filter(id__in=user_ids)
+		album.shared_with.set(users)
+		return redirect("viapp:album", album_id=album.id)
+
+	# Используем кастомного пользователя
+	User = get_user_model()
+	users = User.objects.exclude(id=request.user.id)
+	return render(request, "viapp/share_album.html", {"album": album, "users": users})
 
 
 

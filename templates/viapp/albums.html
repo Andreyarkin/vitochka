@@ -6,15 +6,16 @@
 {% block content %}
 
 <div class = "container-fluid d-flex align-items-center justify-content-between mt-3">
-  <h1> <span class="badge bg-dark">Список альбомов</span> </h1>
+  <h1> <span class="badge bg-dark ">Список альбомов</span> </h1>
   {% if request.user.is_superuser %}
   <div class="card-footer">
       <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
           <i class="bi bi-plus-circle"></i> Добавить альбом
       </a>
   </div>
+  {% endif %}
 </div>
-{% endif %}
+
 <div class ="container-fluid mt-3">
   <table class="table text-center">
     <thead>
