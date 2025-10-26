@@ -5,115 +5,132 @@
 
 {% block content %}
 
-<div class = "container-fluid d-flex align-items-center justify-content-between mt-3">
-  <h1> <span class="badge bg-dark ">Список альбомов</span> </h1>
-  {% if request.user.is_superuser %}
-  <div class="card-footer">
-      <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
-          <i class="bi bi-plus-circle"></i> Добавить альбом
-      </a>
-  </div>
-  {% endif %}
-</div>
-
-<div class ="container-fluid mt-3">
-  <table class="table text-center">
-    <thead>
-      <tr>
-        <th scope="col">№</th>
-        <th scope="col">ОБЛОЖКА</th>
-        <th scope="col">НАЗВАНИЕ</th>
-        <th scope="col">ДАТА</th>
-      </tr>
-    </thead>
-    <tbody class="table-group-divider">
-    {% for album in albums %}
-      
-      <tr>
-         
-          <th scope="row">{{ album.id }}</th>
-          <td class ="d-flex align-items-center justify-content-center">
-            <a href="{% url 'viapp:album' album.id %}" class="text-decoration-none text-dark">
-              {% if album.cover %}
-              <img src="{{ album.cover.image.url }}"
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        <h2> 1. Вариант отображения альбомов - ТАБЛИЦА </h2>
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        <div class = "container-fluid d-flex align-items-center justify-content-between mt-3">
+          <h1> <span class="badge bg-dark ">Список альбомов</span> </h1>
+          {% if request.user.is_superuser %}
+          <div class="card-footer">
+            <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
+              <i class="bi bi-plus-circle"></i> Добавить альбом
+            </a>
+          </div>
+          {% endif %}
+        </div>
+        <div class ="container-fluid mt-3">
+          <table class="table text-center">
+            <thead>
+            <tr>
+              <th scope="col">№</th>
+              <th scope="col">ОБЛОЖКА</th>
+              <th scope="col">НАЗВАНИЕ</th>
+              <th scope="col">ДАТА</th>
+            </tr>
+            </thead>
+            <tbody class="table-group-divider">
+            {% for album in albums %}
+            <tr>
+              <th scope="row">{{ forloop.counter }}</th>
+              <td class ="d-flex align-items-center justify-content-center">
+                <a href="{% url 'viapp:album' album.id %}" class="text-decoration-none text-dark">
+                {% if album.cover %}
+                  <img src="{{ album.cover.image.url }}"
                    class="card-img-top"
                    alt="Обложка альбома"
                    style="height: 70px; width: 70px; object-fit: cover;">
-              {% else %}
-              <div class="card-img-top bg-secondary "
+                {% else %}
+                  <div class="card-img-top bg-secondary "
                    style="height: 70px; width: 70px;">
-                  <span class="text-white">Нет</span>
-              </div>
-            </a>
-            {% endif %}
-          </td>
-          <td>{{ album.title }}</td>
-          <td>{{ album.created_at|date:"d.m.Y" }}</td>
-        
-      </tr>
-      </a>
-    {% empty %}
-      <div class="col">
-          <div class="alert alert-info">Альбомов пока нет</div>
+                    <span class="text-white">Нет</span>
+                  </div>
+                {% endif %}
+                </a>
+              </td>
+              <td>{{ album.title }}</td>
+              <td>{{ album.created_at|date:"d.m.Y" }}</td>
+            </tr>
+              </a>
+              {% empty %}
+                <div class="col">
+                  <div class="alert alert-info">Альбомов пока нет</div>
+                </div>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-
-
-
-
-
-<div class="card shadow m-5">
-    <div class="card-header bg-secondary text-white">
-        <h2 class="mb-0">Список альбомов</h2>
     </div>
-    
-    <div class="card-body">
-        <div class="row">
-            {% for album in albums %}
-            <div class="col-2">
-                <div class="card h-100 shadow-sm">
-                    <a href="{% url 'viapp:album' album.id %}" class="text-decoration-none text-dark">
-                        {% if album.cover %}
-                        <img src="{{ album.cover.image.url }}"
-                             class="card-img-top"
-                             alt="Обложка альбома"
-                             style="height: 300px; object-fit: cover;">
-                        {% else %}
-                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
-                             style="height: 300px;">
-                            <span class="text-white">Нет обложки</span>
+  </div>
+
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="true" aria-controls="collapseOne">
+        <h2> 2. Вариант отображения альбомов - ПЛИТКА </h2>
+      </button>
+    </h2>
+    <div id="collapseTwo" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+
+
+        <div class="card shadow m-5">
+            <div class="card-header bg-secondary text-white">
+                <h2 class="mb-0">Список альбомов</h2>
+            </div>
+            
+            <div class="card-body">
+                <div class="row">
+                    {% for album in albums %}
+                    <div class="col-2">
+                        <div class="card h-100 shadow-sm">
+                            <a href="{% url 'viapp:album' album.id %}" class="text-decoration-none text-dark">
+                                {% if album.cover %}
+                                <img src="{{ album.cover.image.url }}"
+                                     class="card-img-top"
+                                     alt="Обложка альбома"
+                                     style="height: 300px; object-fit: cover;">
+                                {% else %}
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                                     style="height: 300px;">
+                                    <span class="text-white">Нет обложки</span>
+                                </div>
+                                {% endif %}
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ album.title }}</h5>
+                                    <p class="card-text text-muted">
+                                        {{ album.description|truncatechars:50 }}
+                                    </p>
+                                    <small class="text-muted">
+                                        {{ album.created_at|date:"d.m.Y" }}
+                                    </small>
+                                </div>
+                            </a>
                         </div>
-                        {% endif %}
-                        <div class="card-body">
-                            <h5 class="card-title">{{ album.title }}</h5>
-                            <p class="card-text text-muted">
-                                {{ album.description|truncatechars:50 }}
-                            </p>
-                            <small class="text-muted">
-                                {{ album.created_at|date:"d.m.Y" }}
-                            </small>
-                        </div>
-                    </a>
+                    </div>
+                    {% empty %}
+                    <div class="col">
+                        <div class="alert alert-info">Альбомов пока нет</div>
+                    </div>
+                    {% endfor %}
                 </div>
             </div>
-            {% empty %}
-            <div class="col">
-                <div class="alert alert-info">Альбомов пока нет</div>
+        
+            {% if request.user.is_superuser %}
+            <div class="card-footer">
+                <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить альбом
+                </a>
             </div>
-            {% endfor %}
+            {% endif %}
         </div>
+      </div>
     </div>
-
-    {% if request.user.is_superuser %}
-    <div class="card-footer">
-        <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Добавить альбом
-        </a>
-    </div>
-    {% endif %}
+  </div>
 </div>
 {% endblock %}

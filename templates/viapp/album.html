@@ -73,7 +73,7 @@
 
             <!-- Ссылка на все альбомы -->
             <a href="{% url 'viapp:albums' %}" class="btn btn-outline-secondary">
-              ← Все альбомы    
+              ← Все альбомы
             </a>
           </div>
           {% if request.user.is_superuser or album.owner == request.user %}
@@ -184,24 +184,53 @@
 
 <!-- право поделиться просмотром альбома -->
 {% if request.user == album.owner or request.user.is_superuser %}
-  <a href="{% url 'viapp:share_album' album.id %}">Поделиться</a>
+  <a href="{% url 'viapp:share_album' album.id %}" class="btn btn-outline-primary rounded-2 my-4">
+    <i class="bi bi-plus-lg"></i> Поделится альбомом с другими пользователями
+  </a>
+
 {% endif %}
 
 <!-- список тех кому доступен альбом -->
 {% if request.user.is_superuser or request.user == album.owner %}
-    <h3>Доступ к альбому предоставлен пользователям:</h3>
-    {% if album.shared_with.all %}
-        <ul>
+<div class="accordion" id="accordionExample">
+  <div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+        <h5> Доступ к альбому предоставлен пользователям: </h5>
+      </button>
+    </h2>
+    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#accordionExample">
+      <div class="accordion-body">
+        {% if album.shared_with.all %}
+        <div class ="container-fluid mt-3">
+          <table class="table">
+            <thead>
+            <tr>
+              <th scope="col">№</th>
+              <th scope="col">User_name</th>
+            </tr>
+            </thead>
+            <tbody class="table-group-divider">
             {% for user in album.shared_with.all %}
-                <li>{{ user.username }}</li>
+                <tr>
+                  <th scope="row"> {{ forloop.counter }} </th>
+                  <td> {{ user.username }} </td>
+                </tr>
             {% empty %}
                 <li>Пока никому не предоставлен доступ</li>
             {% endfor %}
-        </ul>
-    {% endif %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
   // Выбор всех чекбоксов
   document.getElementById('select-all')?.addEventListener('click', function() {
@@ -216,6 +245,7 @@
       document.getElementById('photoForm').submit();
     }
   }
+
 
   // Drag-and-drop для админа
   {% if request.user.is_superuser %}

@@ -33,11 +33,11 @@ def index(request):
 def albums(request):
 	# выводит список альбомов
 	if request.user.is_superuser:
-		albums = Album.objects.all().order_by('-created_at')
+		albums = Album.objects.all().order_by('created_at')
 	else:
 		albums = Album.objects.filter(
 			Q(owner=request.user) | Q(shared_with=request.user)
-		).distinct().order_by('-created_at')
+		).distinct().order_by('created_at')
 	context = {'albums': albums}
 	return render(request, 'viapp/albums.html', context)
 
@@ -59,11 +59,11 @@ def album(request, album_id):
 @login_required()
 def photo(request, photo_id):
 	#страница фотографии
-	hoto = get_object_or_404(Photo, id=photo_id)
+	photo = get_object_or_404(Photo, id=photo_id)
 	album = photo.album
 
 	# Все фото в альбоме отсортированные по ID
-	all_photos = Photo.objects.filter(album=album).order_by('id')
+	all_photos = Photo.objects.filter(album=album).order_by('order')
 
 	# Находим текущий индекс фото в списке
 	photo_list = list(all_photos)
