@@ -27,7 +27,8 @@ urlpatterns = [
     path('', include('viapp.urls')),
     path('users/', include('users.urls')),
     path('users/', include('django.contrib.auth.urls')),
-
+    path('api-auth/', include('rest_framework.urls')),
+    path('', include('viapp.urls')),
 ]
 
 if settings.DEBUG:
