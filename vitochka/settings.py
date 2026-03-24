@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-b_&in8z+lvcvua2zah63kd0s0f9zz5z60qaaz049967i@z1^sz
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "vitochka.onrender.com",  # твой Render-домен
+    "vitochka.onrender.com",  # Render-домен
     "localhost",
     "127.0.0.1",
 ]
