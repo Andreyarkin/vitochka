@@ -1,6 +1,7 @@
 # адреса для страниц приложения viapp
 
 from django.urls import path
+from viapp.api_views import AlbumListView, AlbumDetailView
 
 from . import views
 
@@ -32,4 +33,9 @@ urlpatterns = [
     path('select_cover/<int:album_id>/<int:photo_id>/', views.select_cover, name = 'select_cover'),
     # Страница перемещения расположения фотографии (для администратора)
     path('update_photo_order/', views.update_photo_order, name = 'update_photo_order'),
+    # Страница для того, чтобы делиться правом просмотра альбома
+    path('albums/<int:album_id>/share/', views.share_album, name='share_album'),
+    # Страница для отображения API
+    path('api/albums/', AlbumListView.as_view()),
+    path('api/albums/<int:pk>/', AlbumDetailView.as_view()),
 ]

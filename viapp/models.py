@@ -9,7 +9,7 @@ class Album(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 	shared_with = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name="shared_albums",
 	                                     verbose_name="Доступ для пользователей")
-	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+	owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="albums")
 	cover = models.ForeignKey(
 		'Photo',
 		on_delete=models.SET_NULL,

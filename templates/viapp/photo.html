@@ -3,17 +3,45 @@
 {% block title %}{{ photo.title }}{% endblock %}
 
 {% block content %}
-<div class="container mt-4 ">
+
+<style>
+
+.container-window {
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+
+    overflow: hidden;
+    object-fit: contain; /* сохраняет пропорции и вписывает целиком */
+
+.image-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-height: 60vh;
+    overflow: hidden;
+}
+
+.photo-img {
+    max-width: 100%;
+    max-height: 60vh; /* ← ключевое ограничение по высоте */
+    height: auto;
+    width: auto;
+    object-fit: contain; /* сохраняет пропорции и вписывает целиком */
+}
+</style>
+
+
+
+<div class="container-window mt-4 ">
     <div class="row justify-content-center justify-content-center">
         <div class="col-md-8 d-flex justify-content-center ">
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">{{ photo.title }}</h2>
-                </div>
+
                     <div class="mb-3">
-                        <div class="image-container justify-content-center">
-                            <img src="{{ photo.image.url }}" alt="{{ photo.title }}" 
-                                 class="img-fluid object-fit-scale border rounded" >
+                        <div class="image-container">
+                            <img src="{{ photo.image.url }}" alt="{{ photo.title }}" class="photo-img">
                         </div>
                     </div>
                 <div class="card-footer">

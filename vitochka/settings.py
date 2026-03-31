@@ -28,8 +28,11 @@ SECRET_KEY = 'django-insecure-b_&in8z+lvcvua2zah63kd0s0f9zz5z60qaaz049967i@z1^sz
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = [
+    "vitochka.onrender.com",  # Render-домен
+    "localhost",
+    "127.0.0.1",
+]
 
 # Application definition
 
@@ -41,6 +44,7 @@ INSTALLED_APPS = [
     # сторонние приложения
     'django_bootstrap5',
     'django_extensions',
+    'rest_framework',
 
     # приложения по умолчанию
     'django.contrib.admin',
@@ -133,6 +137,8 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",  # Подключаем папку static
 ]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

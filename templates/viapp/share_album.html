@@ -1,0 +1,17 @@
+{% extends "viapp/base.html" %}
+
+{% block content %}
+  <h2>Поделиться альбомом: {{ album.title }}</h2>
+  <form method="post">
+    {% csrf_token %}
+    <p>Выберите пользователей:</p>
+    {% for user in users %}
+      <label>
+        <input type="checkbox" name="users" value="{{ user.id }}"
+               {% if user in album.shared_with.all %}checked{% endif %}>
+        {{ user.username }}
+      </label><br>
+    {% endfor %}
+    <button type="submit">Сохранить</button>
+  </form>
+{% endblock %}
