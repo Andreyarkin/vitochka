@@ -19,3 +19,4 @@ def get_user_albums(user):
     return Album.objects.filter(
         Q(owner=user) | Q(shared_with=user)
     ).distinct()
+

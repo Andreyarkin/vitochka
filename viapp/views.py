@@ -14,6 +14,7 @@ from io import BytesIO
 
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
+from .services import get_user_albums
 
 # декоратор - проверка того, является ли пользователь администратором
 def admin_required(view_func):

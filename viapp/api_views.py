@@ -34,4 +34,4 @@ class AlbumDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         return Album.objects.filter(
             Q(owner=user) | Q(shared_with=user)
-        ).distinct()
+        ).distinct() # distinct - убирает дубликаты при share
