@@ -79,7 +79,7 @@ def photo(request, photo_id):
 	# Проверка того, что фото принадлежит текущему пользователю.
 	if not (
 			request.user.is_superuser
-			or photo.album.owner != request.user
+			or photo.album.owner == request.user
 			or request.user in album.shared_with.all()
 	):
 		raise PermissionDenied()
