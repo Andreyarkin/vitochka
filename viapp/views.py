@@ -14,7 +14,8 @@ from io import BytesIO
 
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
-from .services import get_user_albums
+from .services import can_view_albums, can_view_album, can_create_album, edit_content
+
 
 # декоратор - проверка того, является ли пользователь администратором
 def admin_required(view_func):
@@ -33,13 +34,11 @@ def index(request):
 @login_required()
 def albums(request):
 	# выводит список альбомов
-	if request.user.is_superuser:
-		albums = Album.objects.all().order_by('created_at')
-	else:
-		albums = Album.objects.filter(
-			Q(owner=request.user) | Q(shared_with=request.user)
-		).distinct().order_by('created_at')
-	context = {'albums': albums}
+	albums = can_view_albums(request.user)
+	context = {
+		'albums': albums,
+		'can_create_album': can_create_album(request.user),
+	           }
 	return render(request, 'viapp/albums.html', context)
 
 @login_required()
@@ -47,14 +46,14 @@ def album(request, album_id):
 	# страница альбома. Выводит альбом и фотографии в нем содержащиеся
 	album = get_object_or_404(Album, id=album_id)
 	# Проверка того, что альбом принадлежит текущему пользователю.
-	if not (
-			request.user.is_superuser or
-			album.owner == request.user or
-			request.user in album.shared_with.all()
-	):
+	if not can_view_album(request.user, album):
 		raise PermissionDenied()
 	photo = album.photos.order_by('-uploaded_at')
-	context = {'album':album, 'photo':photo}
+	context = {
+		'album':album,
+		'photo':photo,
+		'edit_content': edit_content(request.user, album)
+	           }
 	return render(request, 'viapp/album.html', context)
 
 @login_required()
@@ -62,6 +61,10 @@ def photo(request, photo_id):
 	#страница фотографии
 	photo = get_object_or_404(Photo, id=photo_id)
 	album = photo.album
+
+	# Проверка того, что фото принадлежит текущему пользователю.
+	if not can_view_album(request.user, album):
+		raise PermissionDenied()
 
 	# Все фото в альбоме отсортированные по ID
 	all_photos = Photo.objects.filter(album=album).order_by('order')
@@ -76,22 +79,15 @@ def photo(request, photo_id):
 	# Предыдущее фото
 	prev_photo = photo_list[current_index-1] if current_index - 1 >= 0 else None
 
-	# Проверка того, что фото принадлежит текущему пользователю.
-	if not (
-			request.user.is_superuser
-			or photo.album.owner == request.user
-			or request.user in album.shared_with.all()
-	):
-		raise PermissionDenied()
 	context = {'photo':photo,
 				'next_photo': next_photo,
 				'prev_photo': prev_photo,
 				}
+
 	return render(request, 'viapp/photo.html', context)
 
 # функция добавления альбома
 @login_required()
-@admin_required
 def add_album(request):
 	# Страница добавления альбома
 	if request.method != 'POST':
@@ -103,12 +99,15 @@ def add_album(request):
 			add_album.owner = request.user
 			add_album.save()
 			return redirect ('viapp:albums')
+
+	if not can_create_album(request.user):
+		raise PermissionDenied()
+
 	context = {'form' : form}
 	return render(request, 'viapp/add_album.html', context)
 
 # функция добавления фотографий
 @login_required()
-@admin_required
 def add_photo(request, album_id):
 	album = Album.objects.get(id=album_id)
 
@@ -149,7 +148,7 @@ def download_photo(request, photo_id):
 @login_required()
 def delete_photo(request, photo_id):
 	photo = Photo.objects.get(id=photo_id)
-	if not request.user.is_superuser and photo.album.owner != request.user:
+	if not edit_content (request.user, album):
 		raise PermissionDenied()
 	else:
 		photo.delete()

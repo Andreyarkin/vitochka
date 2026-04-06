@@ -16,7 +16,7 @@
       <div class="accordion-body">
         <div class = "container-fluid d-flex align-items-center justify-content-between mt-3">
           <h1> <span class="badge bg-dark ">Список альбомов</span> </h1>
-          {% if request.user.is_superuser %}
+          {% if can_create_album %}
           <div class="card-footer">
             <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
               <i class="bi bi-plus-circle"></i> Добавить альбом
@@ -121,7 +121,7 @@
                 </div>
             </div>
         
-            {% if request.user.is_superuser %}
+            {% if can_create_album %}
             <div class="card-footer">
                 <a href="{% url 'viapp:add_album' %}" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Добавить альбом

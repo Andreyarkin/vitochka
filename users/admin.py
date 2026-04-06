@@ -11,4 +11,11 @@ class CustomUserAdmin(UserAdmin):
 	model = CustomUser
 	list_display = ['email', 'username']
 
+	# Дополнительное поле "может ли создавать альбомы"
+	fieldsets = UserAdmin.fieldsets + (
+		('Дополнительные права', {
+			'fields': ('can_create_album',),
+		}),
+	)
+
 admin.site.register(CustomUser, CustomUserAdmin)
