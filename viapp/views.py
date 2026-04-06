@@ -16,6 +16,15 @@ from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
 from .services import can_view_albums, can_view_album, can_create_album, edit_content
 
+""" 
+права доступа безопасности:
+A - admin
+O - owner
+C - can_create_album
+S - shared_with
+L - logged
+U - unlogged
+"""
 
 # декоратор - проверка того, является ли пользователь администратором
 def admin_required(view_func):
@@ -31,29 +40,36 @@ def index(request):
 	"""Домашняя страница приложения"""
 	return render(request, 'viapp/index.html')
 
+# выводит список альбомов
 @login_required()
 def albums(request):
-	# выводит список альбомов
+	# Безопасность (L and (A (видит всё) or (O or S (видят свое))))
 	albums = can_view_albums(request.user)
+
 	context = {
 		'albums': albums,
 		'can_create_album': can_create_album(request.user),
 	           }
 	return render(request, 'viapp/albums.html', context)
 
+# страница альбома. Выводит альбом и фотографии в нем содержащиеся
 @login_required()
 def album(request, album_id):
-	# страница альбома. Выводит альбом и фотографии в нем содержащиеся
+
 	album = get_object_or_404(Album, id=album_id)
-	# Проверка того, что альбом принадлежит текущему пользователю.
+
+	# Безопасность (A or O or S)
 	if not can_view_album(request.user, album):
 		raise PermissionDenied()
+
 	photo = album.photos.order_by('-uploaded_at')
+
 	context = {
 		'album':album,
 		'photo':photo,
 		'edit_content': edit_content(request.user, album)
 	           }
+
 	return render(request, 'viapp/album.html', context)
 
 @login_required()
@@ -62,7 +78,7 @@ def photo(request, photo_id):
 	photo = get_object_or_404(Photo, id=photo_id)
 	album = photo.album
 
-	# Проверка того, что фото принадлежит текущему пользователю.
+	# Безопасность (A or O or S)
 	if not can_view_album(request.user, album):
 		raise PermissionDenied()
 
@@ -99,7 +115,7 @@ def add_album(request):
 			add_album.owner = request.user
 			add_album.save()
 			return redirect ('viapp:albums')
-
+	# Безопасность (A or C)
 	if not can_create_album(request.user):
 		raise PermissionDenied()
 
@@ -134,7 +150,9 @@ def add_photo(request, album_id):
 @login_required()
 def download_photo(request, photo_id):
 	photo = Photo.objects.get(id = photo_id)
-	if not request.user.is_superuser and photo.album.owner != request.user:
+
+	# Безопасность (A or O)
+	if not edit_content (request.user, album):
 		raise PermissionDenied()
 	else:
 		file = open(photo.image.path, 'rb')
@@ -148,10 +166,13 @@ def download_photo(request, photo_id):
 @login_required()
 def delete_photo(request, photo_id):
 	photo = Photo.objects.get(id=photo_id)
+
+	# Безопасность (A or O)
 	if not edit_content (request.user, album):
 		raise PermissionDenied()
 	else:
 		photo.delete()
+
 		return redirect('viapp:album', album_id=photo.album.id)
 
 # Функция загрузки альбома
