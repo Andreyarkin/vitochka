@@ -127,32 +127,37 @@ def add_album(request):
 def add_photo(request, album_id):
 	album = Album.objects.get(id=album_id)
 
-	if request.method != 'POST':
-		form = PhotoForm(initial={'album': album})
+	# Безопасность (A or O)
+	if not edit_content (request.user, album):
+		raise PermissionDenied()
 	else:
-		form = PhotoForm(request.POST, request.FILES)
-		if form.is_valid():
-			images = request.FILES.getlist('images')
+		# Возможность добавления фотографии
+		if request.method != 'POST':
+			form = PhotoForm(initial={'album': album})
+		else:
+			form = PhotoForm(request.POST, request.FILES)
+			if form.is_valid():
+				images = request.FILES.getlist('images')
 
-			for image in images:
-				Photo.objects.create(
-					album = album,
-					title = form.cleaned_data.get('title', ''),
-					description = form.cleaned_data.get('description', ''),
-					image = image
-				)
-			return redirect('viapp:album', album_id = album.id)
+				for image in images:
+					Photo.objects.create(
+						album = album,
+						title = form.cleaned_data.get('title', ''),
+						description = form.cleaned_data.get('description', ''),
+						image = image
+					)
+				return redirect('viapp:album', album_id = album.id)
 
-	context = {'form' : form, 'album': album}
-	return render(request, 'viapp/add_photo.html', context)
+		context = {'form' : form, 'album': album}
+		return render(request, 'viapp/add_photo.html', context)
 
 # Функция загрузки фото
 @login_required()
 def download_photo(request, photo_id):
 	photo = Photo.objects.get(id = photo_id)
 
-	# Безопасность (A or O)
-	if not edit_content (request.user, album):
+	# Безопасность (A or O )
+	if not can_view_album (request.user, album):
 		raise PermissionDenied()
 	else:
 		file = open(photo.image.path, 'rb')
@@ -176,6 +181,7 @@ def delete_photo(request, photo_id):
 		return redirect('viapp:album', album_id=photo.album.id)
 
 # Функция загрузки альбома
+@login_required()
 def download_album(request, album_id):
 	album = Album.objects.get(id = album_id)
 	zip_buffer = BytesIO()
