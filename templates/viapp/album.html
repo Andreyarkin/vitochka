@@ -76,7 +76,7 @@
               ← Все альбомы
             </a>
           </div>
-          {% if request.user.is_superuser or album.owner == request.user %}
+          {% if view_and_download %}
           <div class = "col-5 d-flex align-items-center">
 
             <!-- Скачать альбом -->
@@ -138,8 +138,8 @@
       <a href="{% url 'viapp:photo' photo.id %}" class="photo-card-link">
         <div class='photo-card card '>
 
-          <!-- Чекбокс для выбора фотографии только для админа -->
-          {% if request.user.is_superuser %}
+          <!-- Чекбокс для выбора фотографии только для A or O -->
+          {% if edit_content %}
           <div class="position-absolute bottom-0 end-0 mx-3 my-2 ">
             <input class="form-check-input border border-1 border-dark" type="checkbox" name="photo_ids" value="{{ photo.id }}">
           </div>

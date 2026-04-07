@@ -14,7 +14,7 @@ from io import BytesIO
 
 from .models import Album, Photo
 from .forms import AlbumForm, PhotoForm
-from .services import can_view_albums, can_view_album, can_create_album, edit_content
+from .services import view_albums, view_and_download, can_create_album, edit_content
 
 """ 
 права доступа безопасности:
@@ -26,25 +26,17 @@ L - logged
 U - unlogged
 """
 
-# декоратор - проверка того, является ли пользователь администратором
-def admin_required(view_func):
-	"""Декоратор для проверки прав суперпользователя."""
-	def wrapper(request, *args, **kwargs):
-		if not request.user.is_superuser:
-			raise PermissionDenied("Доступ запрещён.")
-		return view_func(request, *args, **kwargs)
-	return wrapper
-
 # Create your views here.
 def index(request):
 	"""Домашняя страница приложения"""
 	return render(request, 'viapp/index.html')
 
 # выводит список альбомов
-@login_required()
+@login_required
 def albums(request):
+
 	# Безопасность (L and (A (видит всё) or (O or S (видят свое))))
-	albums = can_view_albums(request.user)
+	albums = view_albums(request.user)
 
 	context = {
 		'albums': albums,
@@ -52,14 +44,14 @@ def albums(request):
 	           }
 	return render(request, 'viapp/albums.html', context)
 
-# страница альбома. Выводит альбом и фотографии в нем содержащиеся
-@login_required()
+# Страница альбома. Выводит альбом и фотографии в нем содержащиеся
+@login_required
 def album(request, album_id):
 
 	album = get_object_or_404(Album, id=album_id)
 
 	# Безопасность (A or O or S)
-	if not can_view_album(request.user, album):
+	if not view_and_download(request.user, album):
 		raise PermissionDenied()
 
 	photo = album.photos.order_by('-uploaded_at')
@@ -67,19 +59,20 @@ def album(request, album_id):
 	context = {
 		'album':album,
 		'photo':photo,
-		'edit_content': edit_content(request.user, album)
+		'edit_content': edit_content(request.user, album),
+		'view_and_download': view_and_download(request.user, album)
 	           }
 
 	return render(request, 'viapp/album.html', context)
 
-@login_required()
+@login_required
 def photo(request, photo_id):
 	#страница фотографии
 	photo = get_object_or_404(Photo, id=photo_id)
 	album = photo.album
 
 	# Безопасность (A or O or S)
-	if not can_view_album(request.user, album):
+	if not view_and_download(request.user, album):
 		raise PermissionDenied()
 
 	# Все фото в альбоме отсортированные по ID
@@ -98,13 +91,20 @@ def photo(request, photo_id):
 	context = {'photo':photo,
 				'next_photo': next_photo,
 				'prev_photo': prev_photo,
+               'edit_content': edit_content(request.user, album),
+               'view_and_download': view_and_download(request.user, album),
 				}
 
 	return render(request, 'viapp/photo.html', context)
 
 # функция добавления альбома
-@login_required()
+@login_required
 def add_album(request):
+
+	# Безопасность (A or C)
+	if not can_create_album(request.user):
+		raise PermissionDenied()
+
 	# Страница добавления альбома
 	if request.method != 'POST':
 		form = AlbumForm()
@@ -115,76 +115,76 @@ def add_album(request):
 			add_album.owner = request.user
 			add_album.save()
 			return redirect ('viapp:albums')
-	# Безопасность (A or C)
-	if not can_create_album(request.user):
-		raise PermissionDenied()
 
 	context = {'form' : form}
 	return render(request, 'viapp/add_album.html', context)
 
 # функция добавления фотографий
-@login_required()
+@login_required
 def add_photo(request, album_id):
-	album = Album.objects.get(id=album_id)
+	album = get_object_or_404(Album, id=album_id)
 
 	# Безопасность (A or O)
 	if not edit_content (request.user, album):
 		raise PermissionDenied()
-	else:
-		# Возможность добавления фотографии
-		if request.method != 'POST':
-			form = PhotoForm(initial={'album': album})
-		else:
-			form = PhotoForm(request.POST, request.FILES)
-			if form.is_valid():
-				images = request.FILES.getlist('images')
 
-				for image in images:
-					Photo.objects.create(
-						album = album,
-						title = form.cleaned_data.get('title', ''),
-						description = form.cleaned_data.get('description', ''),
-						image = image
-					)
-				return redirect('viapp:album', album_id = album.id)
+	# Возможность добавления фотографии
+	if request.method != 'POST':
+		form = PhotoForm(initial={'album': album})
+	else:
+		form = PhotoForm(request.POST, request.FILES)
+		if form.is_valid():
+			images = request.FILES.getlist('images')
+
+			for image in images:
+				Photo.objects.create(
+					album = album,
+					title = form.cleaned_data.get('title', ''),
+					description = form.cleaned_data.get('description', ''),
+					image = image
+				)
+			return redirect('viapp:album', album_id = album.id)
 
 		context = {'form' : form, 'album': album}
 		return render(request, 'viapp/add_photo.html', context)
 
 # Функция загрузки фото
-@login_required()
+@login_required
 def download_photo(request, photo_id):
-	photo = Photo.objects.get(id = photo_id)
+	photo = get_object_or_404(Photo, id=photo_id)
+	album = photo.album
 
-	# Безопасность (A or O )
-	if not can_view_album (request.user, album):
+	# Безопасность (A or O or S)
+	if not view_and_download (request.user, album):
 		raise PermissionDenied()
-	else:
-		file = open(photo.image.path, 'rb')
-		response = FileResponse(file)
 
-	# Имя файла для скачивания
-	response['Content-Disposition'] = f'attachment; filename = "{photo.image.name}"'
-	return response
+	return FileResponse(photo.image.open(), as_attachment=True)
 
 # Функция удаления фото
-@login_required()
+@login_required
 def delete_photo(request, photo_id):
-	photo = Photo.objects.get(id=photo_id)
+	photo = get_object_or_404(Photo, id=photo_id)
+	album = photo.album
 
 	# Безопасность (A or O)
 	if not edit_content (request.user, album):
 		raise PermissionDenied()
-	else:
-		photo.delete()
 
-		return redirect('viapp:album', album_id=photo.album.id)
+	album_id = album.id
+	photo.delete()
+	return redirect('viapp:album', album_id=album_id)
 
 # Функция загрузки альбома
-@login_required()
+@login_required
 def download_album(request, album_id):
-	album = Album.objects.get(id = album_id)
+	album = get_object_or_404(Album, id=album_id)
 	zip_buffer = BytesIO()
+
+	# Безопасность (A or O or S)
+	if not view_and_download (request.user, album):
+		raise PermissionDenied()
+
+	# Скачивание альбома
 	with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
 		for photo in album.photos.all():
 			photo_path = photo.image.path
@@ -197,20 +197,24 @@ def download_album(request, album_id):
 	return response
 
 # Функция удаления альбома
+@login_required
 def delete_album(request, album_id):
-	album = Album.objects.get(id=album_id)
-	if not request.user.is_superuser and photo.album.owner != request.user:
+	album = get_object_or_404(Album, id=album_id)
+
+	# Безопасность (A or O)
+	if not edit_content(request.user, album):
 		raise PermissionDenied()
-	else:
-		album.delete()
-		return redirect('viapp:albums')
+
+	album.delete()
+	return redirect('viapp:albums')
 
 # Функция удаления выбранных фото
+@login_required
 def delete_selected_photos(request, album_id):
-	album = Album.objects.get(id=album_id)
+	album = get_object_or_404(Album, id=album_id)
 
-	# Проверка прав
-	if not request.user.is_superuser and album.owner != request.user:
+	# Безопасность (A or O)
+	if not edit_content(request.user, album):
 		raise PermissionDenied("У вас нет прав на удаление фотографий")
 
 	if request.method == 'POST':
@@ -228,10 +232,13 @@ def delete_selected_photos(request, album_id):
 
 # Функция выбора обложки альбома
 @login_required
-@admin_required
 def select_cover(request, album_id, photo_id):
-	album = Album.objects.get(id=album_id)
-	photo = Photo.objects.get(id=photo_id)
+	album = get_object_or_404(Album, id=album_id)
+	photo = get_object_or_404(Photo, id=photo_id)
+
+	# Безопасность (A or O)
+	if not edit_content(request.user, album):
+		raise PermissionDenied
 
 	album.cover = photo
 	album.save()
@@ -239,48 +246,58 @@ def select_cover(request, album_id, photo_id):
 
 # Функция обновления порядка фотографий
 @login_required
-@admin_required
 def update_photo_order(request):
-	if request.method == 'POST':
-		try:
-			data = json.loads(request.body)
-			for item in data:
-				photo = Photo.objects.get(id=item['id'])
+
+	if request.method != 'POST':
+		return JsonResponse({'status': 'error'}, status=405)
+
+	try:
+		data = json.loads(request.body)
+
+		if not data:
+			raise PermissionDenied()
+
+		# Собираем id всех фото
+		photo_ids = [item['id'] for item in data]
+
+		# Получаем фото
+		photos = Photo.objects.filter(id__in=photo_ids)
+
+		if not photos.exists():
+			raise PermissionDenied()
+
+		# Берем альбом первой фотографии
+		album = photos.first().album
+
+		# Проверяем, что ВСЕ фото из одного альбома
+		if any(photo.album != album for photo in photos):
+			raise PermissionDenied()
+
+		# Проверка прав доступа
+		if not edit_content(request.user, album):
+			raise PermissionDenied()
+
+		# Обновляем порядок
+		for item in data:
+			photo = next((p for p in photos if p.id == item['id']), None)
+			if photo:
 				photo.order = item['order']
 				photo.save()
-			return JsonResponse({'status': 'success'})
-		except Exception as e:
-			return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-	return JsonResponse({'status': 'error'}, status=405)
 
-def user_albums(request):
-	user = request.user
-	if not user.is_authenticated:
-		return HttpResponseForbidden("Необходимо войти в систему")
+		return JsonResponse({'status': 'success'})
 
-	albums = Album.objects.filter(
-		Q(owner=user) | Q(shared_with=user)
-	).distinct()
-
-	return render(request, "albums.html", {"albums": albums})
-
-def album_photos(request, album_id):
-	user = request.user
-	album = get_object_or_404(Album, id=album_id)
-
-	# Проверка доступа
-	if user != album.owner and user not in album.shared_with.all():
-		return HttpResponseForbidden("У вас нет доступа к этому альбому")
-
-	photos = album.photos.all()
-	return render(request, "photos.html", {"album": album, "photos": photos})
+	except Exception as e:
+		return JsonResponse(
+			{'status': 'error', 'message': str(e)},
+			status=400
+		)
 
 @login_required
 def share_album(request, album_id):
 	album = get_object_or_404(Album, id=album_id)
 
 	# Только владелец или суперюзер может делиться
-	if not request.user.is_superuser and album.owner != request.user:
+	if not edit_content(request.user, album):
 		return HttpResponseForbidden("У вас нет прав делиться этим альбомом")
 
 	if request.method == "POST":

@@ -3,7 +3,7 @@ from .models import Album
 
 
 
-def can_view_albums(user):
+def view_albums(user):
     """
     Возвращает queryset альбомов, доступных пользователю
     """
@@ -20,7 +20,7 @@ def can_view_albums(user):
         Q(owner=user) | Q(shared_with=user)
     ).select_related("owner").distinct().order_by('created_at')
 
-def can_view_album(user, album):
+def view_and_download(user, album):
     return (
         user.is_superuser or
         album.owner == user or
@@ -28,7 +28,10 @@ def can_view_album(user, album):
     )
 
 def can_create_album(user):
-    return user.is_superuser or user.can_create_album
+    return (
+        user.is_superuser or
+        user.can_create_album
+    )
 
 def edit_content (user, album):
     return (

@@ -52,7 +52,7 @@
                         </a>
 
                         <!-- Удалить фото -->
-                        {% if request.user.is_superuser %}
+                        {% if edit_content %}
                             <a href="{% url 'viapp:delete_photo' photo.id %}" class="btn btn-danger"
                                onclick="return confirm('Удалить фото? Это действие нельзя отменить!')">
                                 Удалить фото
