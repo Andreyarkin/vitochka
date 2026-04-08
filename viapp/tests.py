@@ -1,3 +1,7 @@
-from django.test import TestCase
+import pytest
 
-# Create your tests here.
+from django.contrib.auth import get_user_model
+from viapp.models import Album
+from viapp.services import view_and_download
+
+User = get_user_model()
