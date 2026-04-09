@@ -1,8 +1,6 @@
 from django.db.models import Q
 from .models import Album
 
-
-
 def view_albums(user):
     """
     Возвращает queryset альбомов, доступных пользователю
@@ -24,7 +22,7 @@ def view_and_download(user, album):
     return (
         user.is_superuser or
         album.owner == user or
-        user in album.shared_with.all()
+        album.shared_with.filter(id=user.id).exists()
     )
 
 def can_create_album(user):
