@@ -123,29 +123,37 @@ def add_album(request):
 def add_photo(request, album_id):
 	album = get_object_or_404(Album, id=album_id)
 
-	# Безопасность (A or O)
-	if not edit_content (request.user, album):
+	if not edit_content(request.user, album):
 		raise PermissionDenied()
 
-	# Возможность добавления фотографии
 	if request.method != 'POST':
 		form = PhotoForm(initial={'album': album})
-	else:
-		form = PhotoForm(request.POST, request.FILES)
-		if form.is_valid():
-			images = request.FILES.getlist('images')
+		return render(request, 'viapp/add_photo.html', {
+			'form': form,
+			'album': album
+		})
 
+	form = PhotoForm(request.POST, request.FILES)
+
+	if form.is_valid():
+		images = request.FILES.getlist('images')
+
+		if not images:
+			form.add_error('images', 'Добавьте хотя бы одно фото')
+		else:
 			for image in images:
 				Photo.objects.create(
-					album = album,
-					title = form.cleaned_data.get('title', ''),
-					description = form.cleaned_data.get('description', ''),
-					image = image
+					album=album,
+					title=form.cleaned_data.get('title', ''),
+					description=form.cleaned_data.get('description', ''),
+					image=image
 				)
-			return redirect('viapp:album', album_id = album.id)
+			return redirect('viapp:album', album_id=album.id)
 
-		context = {'form' : form, 'album': album}
-		return render(request, 'viapp/add_photo.html', context)
+	return render(request, 'viapp/add_photo.html', {
+		'form': form,
+		'album': album
+	})
 
 # Функция загрузки фото
 @login_required
