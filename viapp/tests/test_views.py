@@ -422,9 +422,9 @@ def test_test_user_cannot_upload_without_images(client, django_user_model):
 Тесты функции delete_photo
 '''
 
-# owner - удаляет
+# owner - удаляет фото
 @pytest.mark.django_db
-def test_owner_can_delete(client, django_user_model):
+def test_owner_can_delete_photo(client, django_user_model):
     user_owner = django_user_model.objects.create_user(
         username='Bred',
         password='123'
@@ -444,6 +444,161 @@ def test_owner_can_delete(client, django_user_model):
     url = reverse('viapp:delete_photo', args=[photo_2.id])
 
     response = client.post(url)
+    # редирект обратно в альбом
     assert response.status_code == 302
     assert Photo.objects.count() == 0
+
+# тест другой пользователь не может удалить
+@pytest.mark.django_db
+def test_other_cannot_delete_photo(client, django_user_model):
+    owner_user = django_user_model.objects.create_user(username='Phil', password='123')
+    other_user = django_user_model.objects.create_user(username='Nelson', password='123')
+
+    album_5 = Album.objects.create(title='test123', owner = owner_user)
+    image_5 = SimpleUploadedFile(
+        name='Photo_2.jpg',
+        content=b'file_content',
+        content_type='image/jpeg'
+    )
+    photo_5 = Photo.objects.create(album = album_5, image = image_5)
+    client.force_login(other_user)
+
+    url = reverse('viapp:delete_photo', args=[photo_5.id])
+    response = client.post(url)
+
+    assert response.status_code == 403
+
+'''
+Тесты функции delete_photo
+'''
+# owner - удаляет альбом
+@pytest.mark.django_db
+def test_owner_can_delete_album(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(
+        username='Bred',
+        password='123'
+    )
+    client.force_login(user_owner)
+
+    album_2 = Album.objects.create(title = 'test11', owner = user_owner)
+
+    url = reverse('viapp:delete_album', args=[album_2.id])
+
+    response = client.post(url)
+    # редирект обратно в альбом
+    assert response.status_code == 302
+    assert Album.objects.count() == 0
+
+# тест другой пользователь не может удалить
+@pytest.mark.django_db
+def test_other_cannot_delete_album(client, django_user_model):
+    owner_user = django_user_model.objects.create_user(username='Phil', password='123')
+    other_user = django_user_model.objects.create_user(username='Nelson', password='123')
+
+    album_5 = Album.objects.create(title='test123', owner = owner_user)
+
+    client.force_login(other_user)
+
+    url = reverse('viapp:delete_album', args=[album_5.id])
+    response = client.post(url)
+
+    assert response.status_code == 403
+
+'''
+Тесты функции download_photo
+'''
+
+# Есть право - 200 и FileResponse
+@pytest.mark.django_db
+def test_permission_200_FileResponse(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(username='Nancy', password='123')
+    client.force_login(user_owner)
+    album_6 = Album.objects.create(title='fifa', owner = user_owner)
+    image_6 = SimpleUploadedFile(
+        name='Photo_6.jpg',
+        content=b'file_content',
+        content_type='image/jpeg'
+    )
+    photo_6 = Photo.objects.create(album = album_6, image = image_6)
+
+    url = reverse('viapp:download_photo', args = [photo_6.id])
+    response = client.get(url)
+
+    assert response.status_code == 200
+    assert 'filename=' in response['Content-Disposition']
+
+# Нет права - 403
+@pytest.mark.django_db
+def test_NOpermission_photo_download_403(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(username='Nancy', password='123')
+    other_user = django_user_model.objects.create_user(username='Nelson', password='123')
+
+    album_6 = Album.objects.create(title='fifa', owner = user_owner)
+    image_6 = SimpleUploadedFile(
+        name='Photo_6.jpg',
+        content=b'file_content',
+        content_type='image/jpeg'
+    )
+    photo_6 = Photo.objects.create(album = album_6, image = image_6)
+    client.force_login(other_user)
+
+    url = reverse('viapp:download_photo', args = [photo_6.id])
+    response = client.get(url)
+
+    assert response.status_code == 403
+
+# тест нет фото - 404
+@pytest.mark.django_db
+def test_NO_photo_to_download_404(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(username='Nancy', password='123')
+
+    client.force_login(user_owner)
+
+    url = reverse('viapp:download_photo', args = [99999999])
+    response = client.get(url)
+
+    assert response.status_code == 404
+
+'''
+Тесты функции download_album
+'''
+# Есть право - 200 и zip
+@pytest.mark.django_db
+def test_permission_200_zip(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(username='Nancy', password='123')
+    client.force_login(user_owner)
+    album_6 = Album.objects.create(title='fifa', owner = user_owner)
+    image_6 = SimpleUploadedFile(
+        name='Photo_6.jpg',
+        content=b'file_content',
+        content_type='image/jpeg'
+    )
+    photo_6 = Photo.objects.create(album = album_6, image = image_6)
+
+    url = reverse('viapp:download_album', args = [album_6.id])
+    response = client.get(url)
+
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'application/zip'
+    assert response['Content-Disposition'].startswith('attachment')
+
+# Нет права - 403
+@pytest.mark.django_db
+def test_NOpermission_album_download_403(client, django_user_model):
+    user_owner = django_user_model.objects.create_user(username='Nancy', password='123')
+    other_user = django_user_model.objects.create_user(username='Nelson', password='123')
+
+    album_6 = Album.objects.create(title='fifa', owner = user_owner)
+    image_6 = SimpleUploadedFile(
+        name='Photo_6.jpg',
+        content=b'file_content',
+        content_type='image/jpeg'
+    )
+    photo_6 = Photo.objects.create(album = album_6, image = image_6)
+    client.force_login(other_user)
+
+    url = reverse('viapp:download_photo', args = [album_6.id])
+    response = client.get(url)
+
+    assert response.status_code == 403
 

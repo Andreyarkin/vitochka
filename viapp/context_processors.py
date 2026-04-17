@@ -1,5 +1,3 @@
-from django.db.models import Q
-from .models import Album
 from .services import view_albums
 
 
