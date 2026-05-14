@@ -19,6 +19,7 @@ class AlbumSerializer(serializers.ModelSerializer):
             "title",
             "description",
             "created_at",
+            "cover",
             "owner",
             "shared_with",
             "photos_count",

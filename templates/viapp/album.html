@@ -29,7 +29,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
+
   }
   
   .photo-card:active { cursor: grabbing; }
@@ -60,6 +60,20 @@
   /* 55px отступ для контейнера содержимого страницы */
   .main-container {
   top: 200px
+  }
+  
+  .photo-item {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+
+  .photo-item.dragging {
+    opacity: 0.4;
+    transform: scale(1.05);
+    z-index: 1000;
+  }
+
+  .photo-card {
+    transition: all 0.2s ease;
   }
 </style>
 
@@ -246,70 +260,109 @@
     }
   }
 
-
-  // Drag-and-drop для админа
   {% if request.user.is_superuser %}
   document.addEventListener('DOMContentLoaded', () => {
-    const photoList = document.getElementById('photo-list');
-    let draggedItem = null;
-
-    photoList.addEventListener('dragstart', (e) => {
-      const item = e.target.closest('.photo-item');
-      if (item) {
-        draggedItem = item;
-        item.style.opacity = '0.5';
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', item.dataset.id);
-      }
-    });
-
-    photoList.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      const afterElement = getDragAfterElement(photoList, e.clientY);
-      if (afterElement) {
-        photoList.insertBefore(draggedItem, afterElement);
-      } else {
-        photoList.appendChild(draggedItem);
-      }
-    });
-
-    photoList.addEventListener('dragend', async () => {
-      draggedItem.style.opacity = '1';
-      const photos = Array.from(photoList.children);
-      const orderData = photos.map((item, index) => ({
-        id: parseInt(item.dataset.id),
-        order: index + 1
-      }));
-
-      try {
-        const response = await fetch("{% url 'viapp:update_photo_order' %}", {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': '{{ csrf_token }}'
-          },
-          body: JSON.stringify(orderData)
-        });
-        if (response.ok) location.reload();
-      } catch (error) {
-        console.error('Ошибка:', error);
-      }
-    });
-
-    function getDragAfterElement(container, y) {
-      const elements = [...container.querySelectorAll('.photo-item:not(.dragging)')];
-      return elements.reduce((closest, child) => {
-        const box = child.getBoundingClientRect();
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-          return { element: child, offset };
-        } else {
+  
+      const photoList = document.getElementById('photo-list');
+      let draggedItem = null;
+  
+      // Начало перетаскивания
+      photoList.addEventListener('dragstart', (e) => {
+  
+          const item = e.target.closest('.photo-item');
+  
+          if (!item) return;
+  
+          draggedItem = item;
+  
+          item.classList.add('dragging');
+  
+          e.dataTransfer.effectAllowed = 'move';
+      });
+  
+      // Конец перетаскивания
+      photoList.addEventListener('dragend', async () => {
+  
+          if (!draggedItem) return;
+  
+          draggedItem.classList.remove('dragging');
+  
+          const photos = [...photoList.querySelectorAll('.photo-item')];
+  
+          const orderData = photos.map((item, index) => ({
+              id: parseInt(item.dataset.id),
+              order: index + 1
+          }));
+  
+          try {
+              const response = await fetch("{% url 'viapp:update_photo_order' %}", {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRFToken': '{{ csrf_token }}'
+                  },
+                  body: JSON.stringify(orderData)
+              });
+  
+              if (!response.ok) {
+                  console.error('Ошибка сохранения');
+              }
+  
+          } catch (error) {
+              console.error(error);
+          }
+  
+      });
+  
+      // Перетаскивание
+      photoList.addEventListener('dragover', (e) => {
+  
+          e.preventDefault();
+  
+          const afterElement = getDragAfterElement(photoList, e.clientX, e.clientY);
+  
+          if (!draggedItem) return;
+  
+          if (afterElement == null) {
+              photoList.appendChild(draggedItem);
+          } else {
+              photoList.insertBefore(draggedItem, afterElement);
+          }
+  
+      });
+  
+      // Определяем позицию
+      function getDragAfterElement(container, x, y) {
+  
+          const draggableElements = [
+              ...container.querySelectorAll('.photo-item:not(.dragging)')
+          ];
+  
+          let closest = null;
+          let closestOffset = Number.NEGATIVE_INFINITY;
+  
+          draggableElements.forEach(child => {
+  
+              const box = child.getBoundingClientRect();
+  
+              const offsetX = x - box.left - box.width / 2;
+              const offsetY = y - box.top - box.height / 2;
+  
+              const offset = -(Math.abs(offsetX) + Math.abs(offsetY));
+  
+              if (offset > closestOffset) {
+                  closestOffset = offset;
+                  closest = child;
+              }
+  
+          });
+  
           return closest;
-        }
-      }, { element: null, offset: -Infinity }).element;
-    }
+      }
+  
   });
   {% endif %}
+  
 </script>
 
 
