@@ -12,9 +12,9 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # зависимости Python
-COPY requrements.txt /app/
+COPY requirements.txt /app/
 RUN pip install --upgrade pip
-RUN pip install -r requrements.txt
+RUN pip install -r requirements.txt
 
 # копируем проект
 COPY . /app/
