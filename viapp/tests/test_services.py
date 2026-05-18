@@ -224,6 +224,7 @@ def test_user_shared_see_shared_albums():
     )
     album_1 = Album.objects.create(title='Album 1', owner=user_owner)
     album_2 = Album.objects.create(title='Album 2', owner=user_owner)
+    
     album_1.shared_with.add(user_shared)
     album_2.shared_with.add(user_shared)
 

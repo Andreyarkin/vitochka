@@ -3,7 +3,7 @@
 ## Технологии
 * **Backend:** Django
 * **API:** Django REST Framework
-* **База данных:** SQLite 
+* **База данных:** PostgreSQL 
 * **Тестирование:** pytest
 
 ## Описание проекта
