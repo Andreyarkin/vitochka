@@ -7,17 +7,23 @@
     <div class="row justify-content-start">
         <div class="col-md-8">
             <h2 class="mb-4">Добавить фотографии</h2>
-            <form action="{% url 'viapp:add_photo' album.id %}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                
-                <!-- Скрытое поле для альбома -->
-                <input type="hidden" name="album" value="{{ album.id }}">
-                
+            
                 <div class="form-group">
-                    {{ form.as_p|safe }}
+                    {{ form.images.label_tag }}
+                    {{ form.images }}
+            
+                    {% if form.images.errors %}
+                        <div class="text-danger">
+                            {{ form.images.errors }}
+                        </div>
+                    {% endif %}
                 </div>
-                
-                <button type="submit" class="btn btn-primary">Загрузить</button>
+            
+                <button type="submit" class="btn btn-primary">
+                    Загрузить
+                </button>
             </form>
         </div>
     </div>

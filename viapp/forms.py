@@ -9,22 +9,45 @@ class AlbumForm(forms.ModelForm):
 		fields = ['title', 'description']
 
 class MultipleFileInput(forms.ClearableFileInput):
-	allow_multiple_selected = True
+    allow_multiple_selected = True
+
 
 class MultipleFileField(forms.FileField):
-	def __init__(self, *args, **kwargs):
-		kwargs.setdefault("widget", MultipleFileInput())
-		super().__init__(*args, **kwargs)
+	widget = MultipleFileInput
+	
+	def clean(self, data, initial=None):
+		if not data:
+			return []
+		
+		files = data
+		if not isinstance(files, (list, tuple)):
+			files = [files]
+		
+		cleaned_files = []
+		
+		for file in files:
+			file = super().clean(file, initial)
+			
+			# 🔥 проверка типа
+			if file.content_type not in [
+				'image/jpeg',
+				'image/png',
+				'image/webp'
+			]:
+				raise forms.ValidationError("Можно загружать только изображения формата jpeg, png, webp")
+			
+			# 🔥 размер
+			if file.size > 20 * 1024 * 1024:
+				raise forms.ValidationError("Файл слишком большой (max 20MB)")
+			
+			cleaned_files.append(file)
+		
+		return cleaned_files
 
-	def clean(self, data, initial = None):
-		return(super().clean(file, initial) for file in data)
 
-class PhotoForm(forms.ModelForm):
+class PhotoForm(forms.Form):
 	images = MultipleFileField(label = "Фотографии")
 
 	class Meta:
 		model = Photo
 		fields = []
-
-
-

@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.validators import FileExtensionValidator
 
 def validate_image(file):
 	if not hasattr(file, 'content_type'):
@@ -46,7 +47,12 @@ class Photo(models.Model):
 	image = models.ImageField(
 		upload_to='photos/',
 		verbose_name=" Фотография",
-		validators = [validate_image, validate_size]
+		validators = [
+			validate_image,
+			validate_size,
+			FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'webp']),
+		]
+		
 	)
 	caption = models.CharField(max_length=255, blank=True, null=True, verbose_name="Подпись")
 	uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата загрузки")
