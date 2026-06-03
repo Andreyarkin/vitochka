@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-b_&in8z+lvcvua2zah63kd0s0f9zz5z60qaaz049967i@z1^sz
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "vitochka.onrender.com",  # Render-домен
+    "vitochka.onrender.com",  # Render-домен для хостинга веб проложения моего pet-проекта
     "localhost",
     "127.0.0.1",
     "0.0.0.0",
@@ -149,8 +149,7 @@ STATICFILES_DIRS = [
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/app/media'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

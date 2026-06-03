@@ -9,12 +9,13 @@ services:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - .env
     depends_on:
       - db
+    restart: always
 
   db:
     image: postgres:16
@@ -23,13 +24,13 @@ services:
       POSTGRES_DB: vitochka
       POSTGRES_USER: vitochka_user
       POSTGRES_PASSWORD: vitochka_pass
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
 
   nginx:
     image: nginx:alpine
+    container_name: vitochka_nginx
     ports:
       - "80:80"
     volumes:
@@ -38,6 +39,7 @@ services:
       - media_volume:/app/media
     depends_on:
       - web
+    restart: always
 
 volumes:
   static_volume:
