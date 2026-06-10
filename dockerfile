@@ -19,5 +19,5 @@ RUN pip install -r requirements.txt
 # копируем проект
 COPY . /app/
 
-# запуск (пока для dev)
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# запуск
+CMD ["gunicorn", "vitochka.wsgi:application", "--bind", "0.0.0.0:8000"]
