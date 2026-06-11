@@ -1,30 +1,43 @@
 # Vitochka — Django Photo Album Web Application
 
+## Live Demo
+
+https://viphoto35.ru
+
 ## Реализовано
 
 - Пользовательская система авторизации
-- Разграничение прав доступа
-- Работа с медиафайлами
+- Разграничение прав доступа (owner / shared)
+- Работа с медиафайлами (upload / download)
 - REST API на Django REST Framework
 - Скачивание альбомов ZIP-архивом
 - Совместный доступ к альбомам
 - Управление порядком фотографий
 - Выбор обложки альбома
 - PostgreSQL
-- Docker
-- Gunicorn
-- Nginx
+- Docker & Docker Compose
+- Nginx reverse proxy
+- Gunicorn WSGI server
+- SSL (Let's Encrypt, HTTPS)
 - Pytest
 
 ## Описание проекта
+
 Vitochka — это веб-приложение для хранения, организации и совместного доступа к фотографиям в альбомах.
+
 Проект реализован на Django + Django REST Framework и поддерживает управление пользователями, разграничение прав доступа и API для взаимодействия с фронтендом.
-Основная идея проекта — создать удобную систему управления фотоальбомами с гибкой моделью доступа: пользователь может делиться альбомами, ограничивать просмотр и управлять содержимым.
+
+Основная цель проекта — создание удобной системы управления фотоальбомами с гибкой моделью доступа, где пользователь может:
+- создавать альбомы
+- делиться ими
+- ограничивать доступ
+- управлять содержимым
 
 ## Цели проекта
 Этот проект создан как:
    * практическое закрепление Django + DRF
    * изучение архитектуры web-приложений
+   * освоение production-деплоя (Docker + Nginx + SSL)
    * развитие навыков backend-разработки
    * подготовка к трудоустройству в сфере Python/Django
 
@@ -58,11 +71,14 @@ API:
 ## Технологии и зависимости:
    * Backend: Django 5.1
    * API: Django REST Framework
-   * Database: PostgreSQL / SQLite (dev)
+   * Database: PostgreSQL 
+   * WSGI: Gunicorn
+   * Web server: Nginx
+   * Containerization: Docker, Docker Compose
    * Testing: pytest
    * Frontend templates: Django Templates + Bootstrap
    * Media storage: Django media system
-   * Deployment: Docker, Nginx, Gunicorn
+   * Security: HTTPS (Let’s Encrypt SSL)
 
 ## Архитектура проекта:
 
@@ -162,8 +178,13 @@ API:
 
 ## Демонстрация работы проекта:
 
-> Проект был развернут на платформе Render:  
-[ссылка видео на яндекс диске](https://disk.yandex.ru/i/9p659pKn1CmwfQ)
+Проект развернут на VPS с использованием:
+
+   * Docker Compose
+   * Nginx reverse proxy
+   * Gunicorn
+   * SSL (Let’s Encrypt)
+   * Domain: https://viphoto35.ru
 
 ## Скриншоты
 
